@@ -76,7 +76,6 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
   }
 
 Future<void> submitTransaction() async {
-  final transactionId = generateTransactionId();
   final phone = phoneController.text.replaceAll('-', '').trim();
   final price = double.tryParse(priceController.text);
   print('staff_id: ${widget.staff_id}');
@@ -87,11 +86,11 @@ Future<void> submitTransaction() async {
   }
 
   try {
+    // Send transaction data to the server
     final transactionResponse = await http.post(
       Uri.parse('$baseUrl/transactions'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'transaction_id': transactionId,
         'phone_number': phone,
         'fuel_type': selectedFuelType,
         'amount': price,
@@ -103,54 +102,54 @@ Future<void> submitTransaction() async {
     print('Response Body: ${transactionResponse.body}');
 
     if (transactionResponse.statusCode == 200) {
-      final transaction = json.decode(transactionResponse.body);
+      final Map<String, dynamic> transaction = json.decode(transactionResponse.body);
+
+      // Update to match the server response key
+      final String? transactionId = transaction['transactionId']?.toString();
+
+      if (transactionId == null || transactionId.isEmpty) {
+        _showSnackBar('ไม่สามารถรับหมายเลขรายการจากเซิร์ฟเวอร์ได้.');
+        return;
+      }
+
       final pointsEarned = transaction['pointsEarned'] ?? 0;
 
-      // ลบการเรียกใช้ dividendResponse ตรงนี้ออก เพราะเราไม่ใช้ endpoint แยกสำหรับดึงปันผลอีกต่อไป
-
-      // ดึงข้อมูลสมาชิกและพนักงาน
+      // Fetch member and staff data
       final memberResponse = await http.get(Uri.parse('$baseUrl/customers/$phone'));
       final staffResponse = await http.get(Uri.parse('$baseUrl/staff/${widget.staff_id}'));
 
-      print('Member Response Status Code: ${memberResponse.statusCode}');
-      print('Staff Response Status Code: ${staffResponse.statusCode}');
+      if (memberResponse.statusCode == 200 && staffResponse.statusCode == 200) {
+        final memberData = json.decode(memberResponse.body);
+        final staffData = json.decode(staffResponse.body);
 
-    if (memberResponse.statusCode == 200 && staffResponse.statusCode == 200) {
-      final memberData = json.decode(memberResponse.body);
-      final staffData = json.decode(staffResponse.body);
+        // Calculate dividend
+        final dividendPercentage = 0.05;
+        final dividend = price * dividendPercentage;
 
-      // ตรวจสอบค่า dividend ก่อนแปลง
-      final dividendString = memberData['dividends'].toString();
-      print('Dividend String: $dividendString');
-
-      // แปลง dividend เป็น double และตั้งค่าเริ่มต้นเป็น 0.0 หากไม่สำเร็จ
-      final dividend = double.tryParse(dividendString) ?? 0.0;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ReceiptScreen(
-          transactionId: transactionId,
-          phoneNumber: phone,
-          fuelType: selectedFuelType,
-          price: price,
-          pointsEarned: pointsEarned,
-          dividend: dividend,  // ใช้ค่าปันผลที่ดึงจาก memberData
-          staffFirstName: staffData['first_name'],
-          staffLastName: staffData['last_name'],
-          memberId: memberData['customer_id'].toString(),  // แปลงเป็น String
-          memberFirstName: memberData['first_name'],
-          memberLastName: memberData['last_name'],
-          staffId: widget.staff_id,
-          selectedDevice: _selectedDevice,
-        ),
-      ),
-    );
-
-    } else {
-      _showSnackBar('ไม่สามารถดึงข้อมูลสมาชิกหรือพนักงานได้.');
-    }
-
+        // Navigate to ReceiptScreen with the correct transaction_id
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReceiptScreen(
+              transactionId: transactionId,  // Use the server-generated transaction_id
+              phoneNumber: phone,
+              fuelType: selectedFuelType,
+              price: price,
+              pointsEarned: pointsEarned,
+              dividend: dividend,
+              staffFirstName: staffData['first_name'],
+              staffLastName: staffData['last_name'],
+              memberId: memberData['customer_id'].toString(),
+              memberFirstName: memberData['first_name'],
+              memberLastName: memberData['last_name'],
+              staffId: widget.staff_id,
+              selectedDevice: _selectedDevice,
+            ),
+          ),
+        );
+      } else {
+        _showSnackBar('ไม่สามารถดึงข้อมูลสมาชิกหรือพนักงานได้.');
+      }
     } else {
       print('Error: ${transactionResponse.body}');
       _showSnackBar('บันทึกการขายล้มเหลว!');
