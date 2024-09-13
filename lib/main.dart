@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens_employer/login_FuelTransaction.dart';
 import 'screens_employer/sales_FuelTransaction.dart';
+import 'screens_admin/login_admin.dart';
 
 void main() => runApp(const MyApp());
 
@@ -24,6 +25,8 @@ class MyApp extends StatelessWidget {
           return FuelTransactionScreen(staff_id: staffId);
         },
         '/login_FuelTransaction': (context) => const Login(),
+        '/login_admin': (context) => const Login_admin(),
+
       },
     );
   }

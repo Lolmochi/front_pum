@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class Login_admin extends StatefulWidget {
+  const Login_admin({super.key});
 
   @override
   _LoginScreen createState() => _LoginScreen();
 }
 
-class _LoginScreen extends State<Login> {
+class _LoginScreen extends State<Login_admin> {
   final _idController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   String errorMessage = '';
@@ -34,7 +34,7 @@ class _LoginScreen extends State<Login> {
         // อาจต้องตรวจสอบข้อมูลที่ตอบกลับจากเซิร์ฟเวอร์ที่นี่
         Navigator.pushNamed(
           context, 
-          '/sales',
+          '/Home_admin',
           arguments: {'staff_id': _idController.text},  // ส่ง staffId ไปยังหน้าจอ /sales
         );
       } else if (response.statusCode == 404) {
@@ -103,13 +103,6 @@ class _LoginScreen extends State<Login> {
                 backgroundColor: Colors.green[700],
               ),
               child: const Text('เข้าสู่ระบบ'),
-            ),
-            const SizedBox(height: 20),
-            IconButton(
-              icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.pushNamed(context, '/login_admin');
-              },
             ),
           ],
         ),
