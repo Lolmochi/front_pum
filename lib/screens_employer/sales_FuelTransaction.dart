@@ -6,6 +6,9 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+
 
 class FuelTransactionScreen extends StatefulWidget {
   final String staff_id;
@@ -74,6 +77,45 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
       _showDialog('ผลการเชื่อมต่อ', 'เชื่อมต่อล้มเหลว');
     }
   }
+
+  Future<void> scanPhoneNumber() async {
+  final ImagePicker picker = ImagePicker();
+  final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+  if (image == null) {
+    _showSnackBar('No image selected.');
+    return;
+  }
+
+  final InputImage inputImage = InputImage.fromFilePath(image.path);
+  final TextRecognizer textRecognizer = GoogleMlKit.vision.textRecognizer();
+  final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+
+  String? extractedPhoneNumber;
+
+  // Use a regular expression to find phone numbers
+  final RegExp phoneRegex = RegExp(r'(\+?\d{1,4}?[-.\s]?)?(\d{1,3}?[-.\s]?)?(\d{1,4}?[-.\s]?)?(\d{1,9})');
+  
+  for (TextBlock block in recognizedText.blocks) {
+    for (TextLine line in block.lines) {
+      if (phoneRegex.hasMatch(line.text)) {
+        extractedPhoneNumber = line.text;
+        break;
+      }
+    }
+    if (extractedPhoneNumber != null) break;
+  }
+
+  if (extractedPhoneNumber != null) {
+    phoneController.text = extractedPhoneNumber;
+    _showSnackBar('Phone number scanned successfully!');
+  } else {
+    _showSnackBar('No phone number found.');
+  }
+  
+  await textRecognizer.close();
+}
+
 
 Future<void> submitTransaction() async {
   final phone = phoneController.text.replaceAll('-', '').trim();
@@ -288,6 +330,10 @@ Future<void> submitTransaction() async {
               onPressed: confirmTransaction,
               child: const Text('บันทึกการขาย'),
             ),
+            ElevatedButton(
+              onPressed: scanPhoneNumber,
+              child: const Text('Scan Phone Number'),
+            ),            
           ],
         ),
       ),

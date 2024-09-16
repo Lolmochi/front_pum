@@ -17,13 +17,13 @@ class _LoginScreen extends State<Login_admin> {
   Future<void> _login() async {
     try {
       var response = await http.post(
-        Uri.parse('http://192.168.1.10:3000/staff/login'),
+        Uri.parse('http://192.168.1.10:3000/officers/login'),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
         body: jsonEncode({
-          'staff_id': _idController.text,
+          'officer_id': _idController.text,
           'phone_number': _phoneNumberController.text,
         }),
       );
@@ -35,7 +35,7 @@ class _LoginScreen extends State<Login_admin> {
         Navigator.pushNamed(
           context, 
           '/Home_admin',
-          arguments: {'staff_id': _idController.text},  // ส่ง staffId ไปยังหน้าจอ /sales
+          arguments: {'officer_id': _idController.text},  // ส่ง staffId ไปยังหน้าจอ /sales
         );
       } else if (response.statusCode == 404) {
         setState(() {

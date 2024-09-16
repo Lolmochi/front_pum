@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'screens_employer/login_FuelTransaction.dart';
 import 'screens_employer/sales_FuelTransaction.dart';
 import 'screens_admin/login_admin.dart';
+import 'screens_admin/Home_admin.dart';
+import 'screens_admin/search_page.dart';
+import 'screens_admin/notifications_page.dart';
+import 'screens_admin/annual_dividendsPage.dart';
 
 void main() => runApp(const MyApp());
 
@@ -26,7 +30,10 @@ class MyApp extends StatelessWidget {
         },
         '/login_FuelTransaction': (context) => const Login(),
         '/login_admin': (context) => const Login_admin(),
-
+        '/Home_admin': (context) => const HomePage(),
+        '/search_page': (context) => const SearchAndManagePage(),
+        '/notifications': (context) => const NotificationsPage(),
+        '/dividends': (context) => const AnnualDividendsPage(),
       },
     );
   }
