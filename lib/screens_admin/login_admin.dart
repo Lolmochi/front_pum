@@ -17,7 +17,7 @@ class _LoginScreen extends State<Login_admin> {
   Future<void> _login() async {
     try {
       var response = await http.post(
-        Uri.parse('http://192.168.1.10:3000/officers/login'),
+        Uri.parse('http://192.168.1.14:3000/officers/login'),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
@@ -32,11 +32,12 @@ class _LoginScreen extends State<Login_admin> {
 
       if (response.statusCode == 200) {
         // อาจต้องตรวจสอบข้อมูลที่ตอบกลับจากเซิร์ฟเวอร์ที่นี่
-        Navigator.pushNamed(
-          context, 
-          '/Home_admin',
-          arguments: {'officer_id': _idController.text},  // ส่ง staffId ไปยังหน้าจอ /sales
-        );
+Navigator.pushNamed(
+  context, 
+  '/Home_admin',
+  arguments: {'officer_id': _idController.text},  // ส่ง officer_id ไปยังหน้าจอ /Home_admin
+);
+
       } else if (response.statusCode == 404) {
         setState(() {
           errorMessage = 'รหัสหรือเบอร์โทรศัพท์ไม่ถูกต้อง';
@@ -89,7 +90,7 @@ class _LoginScreen extends State<Login_admin> {
             const SizedBox(height: 20),
             TextField(
               controller: _phoneNumberController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'รหัสผ่าน',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.lock),

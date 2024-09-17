@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         '/login_FuelTransaction': (context) => const Login(),
         '/login_admin': (context) => const Login_admin(),
         '/Home_admin': (context) => const HomePage(),
-        '/search_page': (context) => const SearchAndManagePage(),
+        '/search_page': (context) => const SearchPage(),
         '/notifications': (context) => const NotificationsPage(),
         '/dividends': (context) => const AnnualDividendsPage(),
       },

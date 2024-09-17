@@ -23,7 +23,7 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   String selectedFuelType = 'ดีเซลพรีเมี่ยม';
-  String baseUrl = 'http://192.168.1.10:3000';
+  String baseUrl = 'http://192.168.1.14:3000';
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   List<BluetoothDevice> _devices = [];
   BluetoothDevice? _selectedDevice;
