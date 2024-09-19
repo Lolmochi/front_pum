@@ -108,7 +108,7 @@ class _LoginScreen extends State<Login> {
             IconButton(
               icon: const Icon(Icons.person),
               onPressed: () {
-                Navigator.pushNamed(context, '/login_admin');
+                Navigator.pushNamed(context, '/login_officer');
               },
             ),
           ],

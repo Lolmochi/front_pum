@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'screens_employer/login_FuelTransaction.dart';
-import 'screens_employer/sales_FuelTransaction.dart';
-import 'screens_admin/login_admin.dart';
-import 'screens_admin/Home_admin.dart';
-import 'screens_admin/search_page.dart';
-import 'screens_admin/notifications_page.dart';
-import 'screens_admin/annual_dividendsPage.dart';
+import 'screens_employer/login_FuelTransaction.dart'; // Staff login screen
+import 'screens_employer/sales_FuelTransaction.dart'; // Sales screen for staff
+import 'screens_officer/login_officer.dart'; // Officer login screen
+import 'screens_officer/Home_officer.dart'; // Officer home screen
+import 'screens_officer/search_transaction.dart'; // Search transactions
+import 'screens_officer/redeem_items.dart'; // Redeem items
+import 'screens_officer/ProfileScreen.dart'; // Profile screen
 
 void main() => runApp(const MyApp());
 
@@ -20,20 +20,23 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/',
+      initialRoute: '/login', // Initial route can be set as needed
       routes: {
-        '/': (context) => const Login(),
+        '/login': (context) => const Login(), // Staff login page
         '/sales': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map?;
-          final staffId = args?['staff_id'] ?? ''; // รับค่า staffId จาก arguments
+          final staffId = args?['staff_id'] ?? ''; // Receive staffId
           return FuelTransactionScreen(staff_id: staffId);
         },
-        '/login_FuelTransaction': (context) => const Login(),
-        '/login_admin': (context) => const Login_admin(),
-        '/Home_admin': (context) => const HomePage(),
-        '/search_page': (context) => const SearchPage(),
-        '/notifications': (context) => const NotificationsPage(),
-        '/dividends': (context) => const AnnualDividendsPage(),
+        '/login_officer': (context) => const OfficerLogin(), // Officer login screen
+        '/officer_home': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map?;
+          final officerId = args?['officer_id'] ?? ''; // Receive officerId
+          return OfficerHomeScreen(officer_id: officerId);
+        },
+        '/search_transaction': (context) => SearchTransactionScreen(), 
+        '/redeem_items': (context) => RewardManagementPage(), 
+        '/profile': (context) => ProfileScreen(),
       },
     );
   }
