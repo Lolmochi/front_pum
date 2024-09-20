@@ -45,14 +45,19 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
     String rewardName = _rewardNameController.text;
     String pointsRequired = _pointsRequiredController.text;
     String description = _descriptionController.text;
+    String rewardId = generateRewardId(); // Generate reward_id
 
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('http://192.168.1.14:3000/rewards'),
     );
+    
+    // Add generated reward_id to request fields
+    request.fields['reward_id'] = rewardId;
     request.fields['reward_name'] = rewardName;
     request.fields['points_required'] = pointsRequired;
     request.fields['description'] = description;
+    
     if (_image != null) {
       request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
     }
