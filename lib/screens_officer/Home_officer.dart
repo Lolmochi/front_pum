@@ -36,43 +36,51 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
       appBar: AppBar(
         title: const Text('Officer Home'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Button to navigate to other pages
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/profile', arguments: widget.officer_id);
-                  },
-                  child: const Text('Profile'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/search_transaction', arguments: widget.officer_id);
-                  },
-                  child: const Text('Transactions'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/redeem_items', arguments: widget.officer_id);
-                  },
-                  child: const Text('Rewards'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Latest Transactions:',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: FutureBuilder<List<dynamic>>(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Button row inside a wrap to prevent overflow
+              Wrap(
+                spacing: 10.0,
+                runSpacing: 10.0, // Adjust spacing between buttons
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/profile', arguments: widget.officer_id);
+                    },
+                    child: const Text('Profile'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/search_transaction', arguments: widget.officer_id);
+                    },
+                    child: const Text('Transactions'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/redeem_items', arguments: widget.officer_id);
+                    },
+                    child: const Text('Rewards'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/search_edit_reward', arguments: widget.officer_id);
+                    },
+                    child: const Text('Edit Reward'),
+                  ),
+                  // Add more buttons as necessary
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Latest Transactions:',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
+              FutureBuilder<List<dynamic>>(
                 future: _latestTransactions,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -84,6 +92,8 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
                   } else {
                     final transactions = snapshot.data!;
                     return ListView.builder(
+                      shrinkWrap: true, // To prevent infinite height error
+                      physics: const NeverScrollableScrollPhysics(), // Prevent inner scrolling
                       itemCount: transactions.length,
                       itemBuilder: (context, index) {
                         final transaction = transactions[index];
@@ -104,8 +114,8 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
                   }
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

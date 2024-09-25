@@ -6,6 +6,7 @@ import 'screens_officer/Home_officer.dart'; // Officer home screen
 import 'screens_officer/search_transaction.dart'; // Search transactions
 import 'screens_officer/redeem_items.dart'; // Redeem items
 import 'screens_officer/ProfileScreen.dart'; // Profile screen
+import 'screens_officer/search_edit_reward.dart'; // Search reward
 
 void main() => runApp(const MyApp());
 
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         '/search_transaction': (context) => SearchTransactionScreen(), 
         '/redeem_items': (context) => RewardManagementPage(), 
         '/profile': (context) => ProfileScreen(),
+        '/search_edit_reward': (context) => SearchAndEditRewardPage(),
       },
     );
   }

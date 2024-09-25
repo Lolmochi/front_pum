@@ -1,10 +1,197 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-class SearchTransactionScreen extends StatelessWidget {
+class SearchTransactionScreen extends StatefulWidget {
+  @override
+  _SearchTransactionScreenState createState() => _SearchTransactionScreenState();
+}
+
+class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  late Future<List<dynamic>> _transactions;
+
+  @override
+  void initState() {
+    super.initState();
+    _transactions = _fetchTransactions();
+  }
+
+  Future<List<dynamic>> _fetchTransactions([String query = '']) async {
+    final response = await http.get(Uri.parse('http://192.168.1.14:3000/transactions?query=$query'));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load transactions');
+    }
+  }
+
+  // Fetch fuel types for the dropdown
+  Future<List<Map<String, dynamic>>> _fetchFuelTypes() async {
+    final response = await http.get(Uri.parse('http://192.168.1.14:3000/fuel_types'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((item) => {
+        'fuel_type_id': item['fuel_type_id'],
+        'fuel_type_name': item['fuel_type_name']
+      }).toList();
+    } else {
+      throw Exception('Failed to load fuel types');
+    }
+  }
+
+  // Update transaction API call
+  Future<void> _updateTransaction(String transactionId, String fuelTypeId, String amount) async {
+    final response = await http.put(
+      Uri.parse('http://192.168.1.14:3000/transactions/$transactionId'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        'fuel_type_id': fuelTypeId,
+        'amount': amount,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Transaction updated successfully');
+      setState(() {
+        _transactions = _fetchTransactions(); // Refresh transaction list
+      });
+    } else {
+      print('Failed to update transaction');
+    }
+  }
+
+  void _showEditDialog(Map<String, dynamic> transaction) async {
+    final TextEditingController amountController = TextEditingController(text: transaction['amount'].toString());
+
+    // Fetch fuel types
+    List<Map<String, dynamic>> fuelTypes = await _fetchFuelTypes();
+
+    // Find the current fuel type based on fuel_type_id
+    String selectedFuelTypeId = transaction['fuel_type_id'].toString();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Transaction'),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Dropdown for selecting fuel type
+                    DropdownButton<String>(
+                      value: selectedFuelTypeId,
+                      items: fuelTypes.map<DropdownMenuItem<String>>((fuelType) {
+                        return DropdownMenuItem<String>(
+                          value: fuelType['fuel_type_id'].toString(),
+                          child: Text(fuelType['fuel_type_name']),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedFuelTypeId = newValue!;
+                        });
+                      },
+                    ),
+                    TextField(
+                      controller: amountController,
+                      decoration: const InputDecoration(labelText: 'Amount'),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _updateTransaction(
+                      transaction['transaction_id'],
+                      selectedFuelTypeId,
+                      amountController.text,
+                    );
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("หน้า ค้นหา แก้ไข ลบ Transaction"),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Search Transactions'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Transactions',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      _transactions = _fetchTransactions(_searchController.text);
+                    });
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: FutureBuilder<List<dynamic>>(
+                future: _transactions,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No transactions found.'));
+                  } else {
+                    final transactions = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: transactions.length,
+                      itemBuilder: (context, index) {
+                        final transaction = transactions[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text('Transaction ID: ${transaction['transaction_id']}'),
+                            subtitle: Text('Amount: ${transaction['amount']} | Fuel Type: ${transaction['fuel_type_id']}'),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                _showEditDialog(transaction);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
