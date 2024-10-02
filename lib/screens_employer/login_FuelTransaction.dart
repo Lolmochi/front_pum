@@ -34,7 +34,7 @@ class _LoginScreen extends State<Login> {
         // อาจต้องตรวจสอบข้อมูลที่ตอบกลับจากเซิร์ฟเวอร์ที่นี่
         Navigator.pushNamed(
           context, 
-          '/sales',
+          '/home_staff',
           arguments: {'staff_id': _idController.text},  // ส่ง staffId ไปยังหน้าจอ /sales
         );
       } else if (response.statusCode == 404) {

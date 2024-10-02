@@ -3,6 +3,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class SearchTransactionScreen extends StatefulWidget {
+  final String officer_id; // เพิ่ม officer_id
+
+  const SearchTransactionScreen({super.key, required this.officer_id});
+
   @override
   _SearchTransactionScreenState createState() => _SearchTransactionScreenState();
 }
@@ -27,7 +31,6 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
     }
   }
 
-  // Fetch fuel types for the dropdown
   Future<List<Map<String, dynamic>>> _fetchFuelTypes() async {
     final response = await http.get(Uri.parse('http://192.168.1.14:3000/fuel_types'));
 
@@ -42,14 +45,14 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
     }
   }
 
-  // Update transaction API call
-  Future<void> _updateTransaction(String transactionId, String fuelTypeId, String amount) async {
+  Future<void> _updateTransaction(String transactionId, String fuelTypeId, String points_earned) async {
     final response = await http.put(
       Uri.parse('http://192.168.1.14:3000/transactions/$transactionId'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         'fuel_type_id': fuelTypeId,
-        'amount': amount,
+        'points_earned': points_earned,
+        'officer_id': widget.officer_id, // ส่ง officer_id ไปด้วย
       }),
     );
 
@@ -64,12 +67,9 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
   }
 
   void _showEditDialog(Map<String, dynamic> transaction) async {
-    final TextEditingController amountController = TextEditingController(text: transaction['amount'].toString());
+    final TextEditingController points_earnedController = TextEditingController(text: transaction['points_earned'].toString());
 
-    // Fetch fuel types
     List<Map<String, dynamic>> fuelTypes = await _fetchFuelTypes();
-
-    // Find the current fuel type based on fuel_type_id
     String selectedFuelTypeId = transaction['fuel_type_id'].toString();
 
     showDialog(
@@ -82,7 +82,6 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
               content: SingleChildScrollView(
                 child: Column(
                   children: [
-                    // Dropdown for selecting fuel type
                     DropdownButton<String>(
                       value: selectedFuelTypeId,
                       items: fuelTypes.map<DropdownMenuItem<String>>((fuelType) {
@@ -98,8 +97,8 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                       },
                     ),
                     TextField(
-                      controller: amountController,
-                      decoration: const InputDecoration(labelText: 'Amount'),
+                      controller: points_earnedController,
+                      decoration: const InputDecoration(labelText: 'points_earned'),
                     ),
                   ],
                 ),
@@ -116,7 +115,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                     _updateTransaction(
                       transaction['transaction_id'],
                       selectedFuelTypeId,
-                      amountController.text,
+                      points_earnedController.text,
                     );
                     Navigator.of(context).pop();
                   },
@@ -134,7 +133,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Transactions'),
+        title: const Text('ค้นหาธุรกรรม'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -143,7 +142,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Search Transactions',
+                labelText: 'ค้นหาธุรกรรม',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
                   onPressed: () {
@@ -164,7 +163,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No transactions found.'));
+                    return const Center(child: Text('ไม่พบธุรกรรม.'));
                   } else {
                     final transactions = snapshot.data!;
                     return ListView.builder(
@@ -174,7 +173,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                         return Card(
                           child: ListTile(
                             title: Text('Transaction ID: ${transaction['transaction_id']}'),
-                            subtitle: Text('Amount: ${transaction['amount']} | Fuel Type: ${transaction['fuel_type_id']}'),
+                            subtitle: Text('Amount: ${transaction['points_earned']} | Fuel Type: ${transaction['fuel_type_id']}'),
                             trailing: IconButton(
                               icon: const Icon(Icons.edit),
                               onPressed: () {

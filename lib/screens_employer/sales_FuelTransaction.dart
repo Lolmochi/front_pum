@@ -135,7 +135,7 @@ Future<void> submitTransaction() async {
       body: json.encode({
         'phone_number': phone,
         'fuel_type': selectedFuelType,
-        'amount': price,
+        'points_earned': price,
         'staff_id': widget.staff_id,
       }),
     );
