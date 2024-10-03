@@ -12,6 +12,7 @@ import 'screens_employer/home_staff.dart';
 import 'screens_employer/get_rewarded.dart';
 import 'screens_officer/history_of_year.dart';
 
+
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
         '/get_rewarded': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map?;
           final staffId = args?['staff_id'] ?? ''; // Receive staffId
-          return GetRewardedPage(staff_id: staffId);
+          return GetRewardedScreen(staff_id: staffId);
         },
         '/login_officer': (context) => const OfficerLogin(), // Officer login screen
         '/officer_home': (context) {
@@ -57,8 +58,8 @@ class MyApp extends StatelessWidget {
         '/redeem_items': (context) => RewardManagementPage(), 
         '/profile': (context) => ProfileScreen(),
         '/search_edit_reward': (context) => SearchAndEditRewardPage(),
-        '/redemtion_deleted':(context) => DeleteRedemptionScreen(),
-        '/history_of_year':(context) => AnnualProcessingScreen()
+        '/redemtion_deleted':(context) => const Search_deleteRedemptionsScreen(),
+        '/history_of_year':(context) => const AnnualProcessingScreen()
       },
     );
   }

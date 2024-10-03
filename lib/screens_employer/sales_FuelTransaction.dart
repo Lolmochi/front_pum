@@ -165,7 +165,7 @@ Future<void> submitTransaction() async {
         final staffData = json.decode(staffResponse.body);
 
         // Calculate dividend
-        final dividendPercentage = 0.05;
+        final dividendPercentage = 0.01;
         final dividend = price * dividendPercentage;
 
         // Navigate to ReceiptScreen with the correct transaction_id
