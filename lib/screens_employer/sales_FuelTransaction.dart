@@ -22,7 +22,7 @@ class FuelTransactionScreen extends StatefulWidget {
 class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
-  String selectedFuelType = 'ดีเซลพรีเมี่ยม';
+  String selectedFuelType = 'ดีเซล B7';
   String baseUrl = 'http://192.168.1.14:3000';
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   List<BluetoothDevice> _devices = [];
@@ -287,13 +287,13 @@ Future<void> submitTransaction() async {
                 });
               },
               items: [
-                'ดีเซลพรีเมี่ยม',
-                'ไฮดีเซล',
-                'ไฮพรีเมียม 97',
-                'e85',
-                'e20',
-                'แก็สโซฮอล 91',
-                'แก็สโซฮอล 95'
+                'ดีเซล B7',
+                'ดีเซล B10',
+                'แก๊สโซฮอล์ E20',
+                'แก๊สโซฮอล์ 91',
+                'แก๊สโซฮอล์ 95',
+                'ซูเปอร์พาวเวอร์ดีเซล B7',
+                'ซูเปอร์พาวเวอร์แก๊สโซฮอล์ 95'
               ].map((fuelType) => DropdownMenuItem(
                 value: fuelType,
                 child: Text(fuelType),

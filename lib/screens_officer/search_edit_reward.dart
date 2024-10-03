@@ -14,7 +14,7 @@ class SearchAndEditRewardPage extends StatefulWidget {
 class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
   final TextEditingController _searchController = TextEditingController();
   late Future<List<dynamic>> _rewards;
-  File? _selectedImage; // สำหรับเก็บรูปภาพที่เลือก
+  File? _selectedImage;
 
   @override
   void initState() {
@@ -43,7 +43,6 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     }
   }
 
-  // ฟังก์ชันสำหรับการอัปเดต reward
   Future<void> _updateReward(String rewardId, String rewardName, int pointsRequired, String description, File? imageFile) async {
     var uri = Uri.parse('http://192.168.1.14:3000/rewards/$rewardId');
     var request = http.MultipartRequest('PUT', uri);
@@ -53,9 +52,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     request.fields['description'] = description;
 
     if (imageFile != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath('image', imageFile.path),
-      );
+      request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
     }
 
     var response = await request.send();
@@ -63,7 +60,8 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     if (response.statusCode == 200) {
       print('Reward updated successfully');
     } else {
-      print('Failed to update reward');
+      print('Failed to update reward: ${response.statusCode}');
+      throw Exception('Failed to update reward');
     }
   }
 
@@ -111,7 +109,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                         return Card(
                           child: ListTile(
                             leading: Image.network(
-                              'http://192.168.1.14:3000/uploads/${reward['image']}', // แสดงภาพจากเซิร์ฟเวอร์
+                              'http://192.168.1.14:3000/uploads/${reward['image']}',
                               width: 50,
                               height: 50,
                               fit: BoxFit.cover,
@@ -141,7 +139,6 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     );
   }
 
-  // แสดง dialog สำหรับการแก้ไข reward
   void showEditDialog(Map<String, dynamic> reward) {
     final TextEditingController rewardNameController = TextEditingController(text: reward['reward_name']);
     final TextEditingController pointsController = TextEditingController(text: reward['points_required'].toString());
@@ -162,6 +159,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                 TextField(
                   controller: pointsController,
                   decoration: const InputDecoration(labelText: 'Points Required'),
+                  keyboardType: TextInputType.number,
                 ),
                 TextField(
                   controller: descriptionController,
@@ -190,21 +188,24 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // เรียกฟังก์ชัน _updateReward พร้อมส่งข้อมูลครบถ้วน
-                await _updateReward(
-                  reward['reward_id'],
-                  rewardNameController.text,
-                  int.parse(pointsController.text), // แปลงค่า points ให้เป็น int
-                  descriptionController.text,
-                  _selectedImage, // ส่งรูปภาพที่เลือกไปด้วย
-                );
-                
-                Navigator.of(context).pop(); // ปิด dialog
-                
-                // รีเฟรชหน้าจอโดยการเรียก setState เพื่อดึงข้อมูลใหม่
-                setState(() {
-                  _rewards = _fetchRewards(_searchController.text);
-                });
+                try {
+                  await _updateReward(
+                    reward['reward_id'].toString(),
+                    rewardNameController.text,
+                    int.parse(pointsController.text),
+                    descriptionController.text,
+                    _selectedImage,
+                  );
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _rewards = _fetchRewards(_searchController.text);
+                  });
+                } catch (e) {
+                  // แสดงข้อความข้อผิดพลาดหากการอัปเดตไม่สำเร็จ
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error updating reward: $e')),
+                  );
+                }
               },
               child: const Text('Save'),
             ),

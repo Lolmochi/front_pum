@@ -14,11 +14,13 @@ class SearchTransactionScreen extends StatefulWidget {
 class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
   final TextEditingController _searchController = TextEditingController();
   late Future<List<dynamic>> _transactions;
+  Map<String, String> fuelTypesMap = {}; // ตัวแปรเพื่อเก็บแมพประเภทน้ำมัน
 
   @override
   void initState() {
     super.initState();
     _transactions = _fetchTransactions();
+    _fetchFuelTypes(); // เรียกฟังก์ชันเพื่อดึงประเภทน้ำมัน
   }
 
   Future<List<dynamic>> _fetchTransactions([String query = '']) async {
@@ -31,19 +33,23 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchFuelTypes() async {
-    final response = await http.get(Uri.parse('http://192.168.1.14:3000/fuel_types'));
+  Future<List<Map<String, dynamic>>> _fetchFuelTypes() async { 
+      final response = await http.get(Uri.parse('http://192.168.1.14:3000/fuel_types'));
 
-    if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => {
-        'fuel_type_id': item['fuel_type_id'],
-        'fuel_type_name': item['fuel_type_name']
-      }).toList();
-    } else {
-      throw Exception('Failed to load fuel types');
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        fuelTypesMap = {
+          for (var item in data) item['fuel_type_id'].toString(): item['fuel_type_name']
+        };
+        return data.map((item) => {
+          'fuel_type_id': item['fuel_type_id'],
+          'fuel_type_name': item['fuel_type_name']
+        }).toList();
+      } else {
+        throw Exception('Failed to load fuel types');
+      }
     }
-  }
+
 
   Future<void> _updateTransaction(String transactionId, String fuelTypeId, String points_earned) async {
     final response = await http.put(
@@ -67,67 +73,68 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
   }
 
   void _showEditDialog(Map<String, dynamic> transaction) async {
-    final TextEditingController points_earnedController = TextEditingController(text: transaction['points_earned'].toString());
+      final TextEditingController points_earnedController = TextEditingController(text: transaction['points_earned'].toString());
 
-    List<Map<String, dynamic>> fuelTypes = await _fetchFuelTypes();
-    String selectedFuelTypeId = transaction['fuel_type_id'].toString();
+      List<Map<String, dynamic>> fuelTypes = await _fetchFuelTypes(); // เรียกฟังก์ชันที่อัปเดตแล้ว
+      String selectedFuelTypeId = transaction['fuel_type_id'].toString();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Edit Transaction'),
-              content: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    DropdownButton<String>(
-                      value: selectedFuelTypeId,
-                      items: fuelTypes.map<DropdownMenuItem<String>>((fuelType) {
-                        return DropdownMenuItem<String>(
-                          value: fuelType['fuel_type_id'].toString(),
-                          child: Text(fuelType['fuel_type_name']),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedFuelTypeId = newValue!;
-                        });
-                      },
-                    ),
-                    TextField(
-                      controller: points_earnedController,
-                      decoration: const InputDecoration(labelText: 'points_earned'),
-                    ),
-                  ],
+      showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: const Text('Edit Transaction'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      DropdownButton<String>(
+                        value: selectedFuelTypeId,
+                        items: fuelTypes.map<DropdownMenuItem<String>>((fuelType) {
+                          return DropdownMenuItem<String>(
+                            value: fuelType['fuel_type_id'].toString(),
+                            child: Text(fuelType['fuel_type_name']),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedFuelTypeId = newValue!;
+                          });
+                        },
+                      ),
+                      TextField(
+                        controller: points_earnedController,
+                        decoration: const InputDecoration(labelText: 'points_earned'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _updateTransaction(
-                      transaction['transaction_id'],
-                      selectedFuelTypeId,
-                      points_earnedController.text,
-                    );
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      _updateTransaction(
+                        transaction['transaction_id'],
+                        selectedFuelTypeId,
+                        points_earnedController.text,
+                      );
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Save'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    }
+
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +180,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                         return Card(
                           child: ListTile(
                             title: Text('Transaction ID: ${transaction['transaction_id']}'),
-                            subtitle: Text('Amount: ${transaction['points_earned']} | Fuel Type: ${transaction['fuel_type_id']}'),
+                            subtitle: Text('Amount: ${transaction['points_earned']} | Fuel Type: ${fuelTypesMap[transaction['fuel_type_id'].toString()] ?? 'Unknown'}'), // เปลี่ยนที่นี่
                             trailing: IconButton(
                               icon: const Icon(Icons.edit),
                               onPressed: () {

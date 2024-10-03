@@ -10,7 +10,7 @@ import 'screens_officer/ProfileScreen.dart'; // Profile screen
 import 'screens_officer/search_edit_reward.dart'; // Search reward
 import 'screens_employer/home_staff.dart';
 import 'screens_employer/get_rewarded.dart';
-import 'screens_officer/redemtion_deleted.dart';
+import 'screens_officer/history_of_year.dart';
 
 void main() => runApp(const MyApp());
 
@@ -57,7 +57,8 @@ class MyApp extends StatelessWidget {
         '/redeem_items': (context) => RewardManagementPage(), 
         '/profile': (context) => ProfileScreen(),
         '/search_edit_reward': (context) => SearchAndEditRewardPage(),
-        '/redemtion_deleted':(context) => DeleteRedemptionScreen()
+        '/redemtion_deleted':(context) => DeleteRedemptionScreen(),
+        '/history_of_year':(context) => AnnualProcessingScreen()
       },
     );
   }

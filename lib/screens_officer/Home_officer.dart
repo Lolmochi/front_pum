@@ -113,6 +113,19 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
                       ),
                     ),
                   ),
+                   ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/history_of_year', arguments: widget.officer_id);
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('ประมวลผลรายปี'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 29, 184, 250),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ),                 
                 ],
               ),
               const SizedBox(height: 20),
