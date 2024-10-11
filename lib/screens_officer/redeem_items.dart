@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
 class RewardManagementPage extends StatefulWidget {
+  const RewardManagementPage({super.key});
+
   @override
   _RewardManagementPageState createState() => _RewardManagementPageState();
 }
@@ -34,7 +36,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
         _rewardNameController.text.isEmpty ||
         _pointsRequiredController.text.isEmpty ||
         _descriptionController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please fill all the fields and select an image'),
         backgroundColor: Colors.red,
       ));
@@ -65,7 +67,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
       var response = await request.send();
 
       if (response.statusCode == 201) { // Changed to 201 for successful creation
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Reward added successfully!'),
           backgroundColor: Colors.green,
         ));
@@ -95,7 +97,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reward Management'),
+        title: const Text('Reward Management'),
         backgroundColor: Colors.blue[800],
       ),
       body: Padding(
@@ -109,7 +111,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
                       height: 150,
                       width: double.infinity,
                       color: Colors.grey[300],
-                      child: Icon(Icons.camera_alt, size: 50),
+                      child: const Icon(Icons.camera_alt, size: 50),
                     )
                   : Image.file(
                       _image!,
@@ -121,7 +123,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
             const SizedBox(height: 20),
             TextField(
               controller: _rewardNameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Reward Name',
                 border: OutlineInputBorder(),
               ),
@@ -129,7 +131,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
             const SizedBox(height: 20),
             TextField(
               controller: _pointsRequiredController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Points Required',
                 border: OutlineInputBorder(),
               ),
@@ -138,7 +140,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
             const SizedBox(height: 20),
             TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Description',
                 border: OutlineInputBorder(),
               ),
@@ -147,7 +149,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitReward,
-              child: Text('Submit Reward'),
+              child: const Text('Submit Reward'),
             ),
           ],
         ),

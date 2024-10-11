@@ -129,7 +129,7 @@ class _OfficerLoginState extends State<OfficerLogin> {
             if (errorMessage.isNotEmpty)
               Text(
                 errorMessage,
-                style: TextStyle(color: Colors.red),
+                style: const TextStyle(color: Colors.red),
               ),
           ],
         ),

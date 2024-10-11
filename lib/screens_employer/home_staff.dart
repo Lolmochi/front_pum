@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class HomeStaffScreen extends StatelessWidget {
   final String staff_id;
 
-  const HomeStaffScreen({Key? key, required this.staff_id}) : super(key: key);
+  const HomeStaffScreen({super.key, required this.staff_id});
 
   @override
   Widget build(BuildContext context) {

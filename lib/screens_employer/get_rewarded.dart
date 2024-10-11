@@ -5,7 +5,7 @@ import 'dart:convert';
 class GetRewardedScreen extends StatefulWidget {
   final String staff_id;
 
-  const GetRewardedScreen({Key? key, required this.staff_id}) : super(key: key);
+  const GetRewardedScreen({super.key, required this.staff_id});
 
   @override
   _GetRewardedScreenState createState() => _GetRewardedScreenState();
@@ -43,28 +43,28 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
       });
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('เกิดข้อผิดพลาดในการดึงข้อมูล')),
+        const SnackBar(content: Text('เกิดข้อผิดพลาดในการดึงข้อมูล')),
       );
     }
   }
 
-  Future<void> completeRedemption(String redemption_id) async {
+  Future<void> completeRedemption(String redemptionId) async {
     try {
       final response = await http.post(
         Uri.parse('http://192.168.1.44:3000/redemptions/update_redemption_status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'redemption_id': redemption_id,
+          'redemption_id': redemptionId,
           'staff_id': widget.staff_id,
         }),
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          pendingRedemptions.removeWhere((item) => item['redemption_id'] == redemption_id);
+          pendingRedemptions.removeWhere((item) => item['redemption_id'] == redemptionId);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('สถานะการแลกเปลี่ยนสำหรับ $redemption_id อัปเดตสำเร็จ!')),
+          SnackBar(content: Text('สถานะการแลกเปลี่ยนสำหรับ $redemptionId อัปเดตสำเร็จ!')),
         );
       } else {
         throw Exception('Failed to update redemption status');
@@ -72,7 +72,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('เกิดข้อผิดพลาดในการอัปเดตสถานะ')),
+        const SnackBar(content: Text('เกิดข้อผิดพลาดในการอัปเดตสถานะ')),
       );
     }
   }

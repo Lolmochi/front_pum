@@ -5,7 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class SearchAndEditRewardPage extends StatefulWidget {
-  late final String officer_id;
+  final String officer_id;
+
+  const SearchAndEditRewardPage({super.key, required this.officer_id});
 
   @override
   _SearchAndEditRewardPageState createState() => _SearchAndEditRewardPageState();

@@ -6,8 +6,8 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+
 
 
 class FuelTransactionScreen extends StatefulWidget {
@@ -78,43 +78,28 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
     }
   }
 
-  Future<void> scanPhoneNumber() async {
-  final ImagePicker picker = ImagePicker();
-  final XFile? image = await picker.pickImage(source: ImageSource.camera);
+  String _scanResult = ''; // ประกาศและกำหนดค่าเริ่มต้นให้ _scanResult
 
-  if (image == null) {
-    _showSnackBar('No image selected.');
-    return;
-  }
-
-  final InputImage inputImage = InputImage.fromFilePath(image.path);
-  final TextRecognizer textRecognizer = GoogleMlKit.vision.textRecognizer();
-  final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-
-  String? extractedPhoneNumber;
-
-  // Use a regular expression to find phone numbers
-  final RegExp phoneRegex = RegExp(r'(\+?\d{1,4}?[-.\s]?)?(\d{1,3}?[-.\s]?)?(\d{1,4}?[-.\s]?)?(\d{1,9})');
-  
-  for (TextBlock block in recognizedText.blocks) {
-    for (TextLine line in block.lines) {
-      if (phoneRegex.hasMatch(line.text)) {
-        extractedPhoneNumber = line.text;
-        break;
-      }
+  Future<void> scanBarcode() async {
+    String barcodeScanRes;
+    try {
+      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+        '#ff6666', // สีของแถบสแกน
+        'ยกเลิก', // ปุ่มยกเลิก
+        true, // สแกนหลายรูปแบบ (QR, Barcode)
+        ScanMode.BARCODE, // โหมดสแกนบาร์โค้ด
+      );
+    } on PlatformException {
+      barcodeScanRes = 'ไม่สามารถเชื่อมต่อกับแพลตฟอร์มได้';
     }
-    if (extractedPhoneNumber != null) break;
+
+    if (!mounted) return;
+
+    setState(() {
+      _scanResult = barcodeScanRes; // กำหนดค่าผลการสแกนให้กับ _scanResult
+    });
   }
 
-  if (extractedPhoneNumber != null) {
-    phoneController.text = extractedPhoneNumber;
-    _showSnackBar('Phone number scanned successfully!');
-  } else {
-    _showSnackBar('No phone number found.');
-  }
-  
-  await textRecognizer.close();
-}
 
 
 Future<void> submitTransaction() async {
@@ -165,7 +150,7 @@ Future<void> submitTransaction() async {
         final staffData = json.decode(staffResponse.body);
 
         // Calculate dividend
-        final dividendPercentage = 0.01;
+        const dividendPercentage = 0.01;
         final dividend = price * dividendPercentage;
 
         // Navigate to ReceiptScreen with the correct transaction_id
@@ -331,7 +316,7 @@ Future<void> submitTransaction() async {
               child: const Text('บันทึกการขาย'),
             ),
             ElevatedButton(
-              onPressed: scanPhoneNumber,
+              onPressed: scanBarcode,
               child: const Text('Scan Phone Number'),
             ),            
           ],
@@ -366,7 +351,7 @@ class ReceiptScreen extends StatelessWidget {
   final String staffId;
   final BluetoothDevice? selectedDevice;
 
-  ReceiptScreen({
+  const ReceiptScreen({super.key, 
     required this.transactionId,
     required this.phoneNumber,
     required this.fuelType,

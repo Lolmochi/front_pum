@@ -89,7 +89,7 @@ class _LoginScreen extends State<Login> {
             const SizedBox(height: 20),
             TextField(
               controller: _phoneNumberController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'รหัสผ่าน',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.lock),

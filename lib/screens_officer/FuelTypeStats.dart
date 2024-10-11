@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class FuelTypeStatsPage extends StatefulWidget {
+  const FuelTypeStatsPage({super.key});
+
   @override
   _FuelTypeStatsPageState createState() => _FuelTypeStatsPageState();
 }
@@ -54,14 +56,14 @@ class _FuelTypeStatsPageState extends State<FuelTypeStatsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Fuel Type Statistics'),
+        title: const Text('Fuel Type Statistics'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             DropdownButtonFormField<String>(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Select Fuel Type',
                 border: OutlineInputBorder(),
               ),
@@ -79,7 +81,7 @@ class _FuelTypeStatsPageState extends State<FuelTypeStatsPage> {
                 );
               }).toList(),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             if (selectedFuelType != null)
               Card(
                 elevation: 4.0,
@@ -90,17 +92,17 @@ class _FuelTypeStatsPageState extends State<FuelTypeStatsPage> {
                     children: [
                       Text(
                         'Fuel Type: $selectedFuelType',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Text(
                         'People Refueled: $peopleCount',
-                        style: TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: 5),
                       Text(
                         'Total Refuels: $refuelCount',
-                        style: TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 16),
                       ),
                     ],
                   ),

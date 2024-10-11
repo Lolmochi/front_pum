@@ -56,12 +56,15 @@ class MyApp extends StatelessWidget {
           final String officerId = ModalRoute.of(context)!.settings.arguments as String;
           return SearchTransactionScreen(officer_id: officerId);
         },
-        '/redeem_items': (context) => RewardManagementPage(), 
-        '/profile': (context) => ProfileScreen(),
-        '/search_edit_reward': (context) => SearchAndEditRewardPage(),
+          '/search_edit_reward': (context) {
+          final String officerId = ModalRoute.of(context)!.settings.arguments as String;
+          return SearchAndEditRewardPage(officer_id: officerId);
+        },
+        '/redeem_items': (context) => const RewardManagementPage(), 
+        '/profile': (context) => const ProfileScreen(),
         '/redemption_deleted': (context) => const Search_deleteRedemptionsScreen(), 
         '/history_of_year':(context) => const AnnualProcessingScreen(),
-        '/FuelTypeStats':(context) => FuelTypeStatsPage()
+        '/FuelTypeStats':(context) => const FuelTypeStatsPage()
       },
     );
   }

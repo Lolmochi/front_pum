@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class Search_deleteRedemptionsScreen extends StatefulWidget {
-  const Search_deleteRedemptionsScreen({Key? key}) : super(key: key);
+  const Search_deleteRedemptionsScreen({super.key});
 
   @override
   _SearchRedemptionsScreenState createState() => _SearchRedemptionsScreenState();
@@ -46,7 +46,7 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
       });
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('เกิดข้อผิดพลาดในการดึงข้อมูล')),
+        const SnackBar(content: Text('เกิดข้อผิดพลาดในการดึงข้อมูล')),
       );
     }
   }
@@ -137,20 +137,20 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
     );
   }
 
-  Future<void> deleteRedemption(String redemption_id) async {
+  Future<void> deleteRedemption(String redemptionId) async {
     try {
       final response = await http.post(
         Uri.parse('http://192.168.1.44:3000/redemptions/delete_redemption'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'redemption_id': redemption_id}),
+        body: jsonEncode({'redemption_id': redemptionId}),
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          redemptions.removeWhere((item) => item['redemption_id'] == redemption_id);
+          redemptions.removeWhere((item) => item['redemption_id'] == redemptionId);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ลบรายการ $redemption_id สำเร็จ!')),
+          SnackBar(content: Text('ลบรายการ $redemptionId สำเร็จ!')),
         );
       } else {
         throw Exception('Failed to delete redemption');
@@ -158,7 +158,7 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('เกิดข้อผิดพลาดในการลบรายการ')),
+        const SnackBar(content: Text('เกิดข้อผิดพลาดในการลบรายการ')),
       );
     }
   }
