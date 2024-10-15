@@ -26,10 +26,9 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
     _annualDividends = _fetchAnnualDividends(); // ดึงข้อมูลปันผลครั้งแรก
   }
 
-  // ฟังก์ชันสำหรับดึงรายการปีที่มีในฐานข้อมูล
   Future<void> _fetchYears() async {
     final response = await http.get(
-      Uri.parse('http://192.168.1.44:3000/annual_dividends/years'),
+      Uri.parse('http://192.168.1.20:3000/annual_dividends/years'),
     );
 
     if (response.statusCode == 200) {
@@ -41,10 +40,9 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
     }
   }
 
-  // ฟังก์ชันสำหรับดึงรายชื่อลูกค้า
   Future<void> _fetchCustomers() async {
     final response = await http.get(
-      Uri.parse('http://192.168.1.44:3000/customers'),
+      Uri.parse('http://192.168.1.20:3000/customers'),
     );
 
     if (response.statusCode == 200) {
@@ -56,9 +54,8 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
     }
   }
 
-  // ฟังก์ชันสำหรับดึงข้อมูลปันผลรายปีตามตัวกรอง
   Future<List<dynamic>> _fetchAnnualDividends() async {
-    String url = 'http://192.168.1.44:3000/annual_dividends';
+    String url = 'http://192.168.1.20:3000/annual_dividends';
 
     Map<String, String> queryParams = {};
     if (selectedYear != null && selectedYear!.isNotEmpty) {
@@ -72,9 +69,7 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
       url += '?${Uri(queryParameters: queryParams).query}';
     }
 
-    final response = await http.get(
-      Uri.parse(url),
-    );
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -83,7 +78,6 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
     }
   }
 
-  // ฟังก์ชันสำหรับรีเฟรชข้อมูลเมื่อมีการเปลี่ยนแปลงตัวกรอง
   void _refreshData() {
     setState(() {
       _annualDividends = _fetchAnnualDividends();
@@ -95,6 +89,7 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ประมวลผลรายปี'),
+        backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -103,7 +98,9 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
             // Dropdown สำหรับเลือกปี
             Row(
               children: [
-                const Text('เลือกปี:'),
+                const Icon(Icons.calendar_today, color: Colors.blueAccent),
+                const SizedBox(width: 10),
+                const Text('เลือกปี:', style: TextStyle(fontSize: 16)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: DropdownButton<String>(
@@ -130,7 +127,9 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
             // Dropdown สำหรับเลือกลูกค้า
             Row(
               children: [
-                const Text('เลือกลูกค้า:'),
+                const Icon(Icons.person, color: Colors.blueAccent),
+                const SizedBox(width: 10),
+                const Text('เลือกลูกค้า:', style: TextStyle(fontSize: 16)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: DropdownButton<String>(
@@ -173,9 +172,16 @@ class _AnnualProcessingScreenState extends State<AnnualProcessingScreen> {
                         final dividend = annualDividends[index];
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           child: ListTile(
+                            leading: const Icon(Icons.monetization_on, color: Colors.green),
                             title: Text(
-                                'ลูกค้า ID: ${dividend['customer_id']} | ปี: ${dividend['year']}'),
+                              'ลูกค้า ID: ${dividend['customer_id']} | ปี: ${dividend['year']}',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             subtitle: Text(
                               'คะแนนที่ใช้: ${dividend['points_used']}\n'
                               'คะแนนที่ได้รับ: ${dividend['points_earned']}\n'

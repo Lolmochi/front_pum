@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart'; // เพิ่มการนำเข้า
 
 class Search_deleteRedemptionsScreen extends StatefulWidget {
   const Search_deleteRedemptionsScreen({super.key});
@@ -18,13 +20,15 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
   @override
   void initState() {
     super.initState();
-    fetchRedemptions(); // ดึงข้อมูลเมื่อเริ่มต้น
+    initializeDateFormatting('th_TH', null).then((_) {  // เรียกใช้งาน locale สำหรับภาษาไทย
+      fetchRedemptions(); // ดึงข้อมูลเมื่อเริ่มต้น
+    });
   }
 
   Future<void> fetchRedemptions() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.44:3000/redemptions/search_redemptions'),
+        Uri.parse('http://192.168.1.20:3000/redemptions/search_redemptions'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'status': selectedStatus != 'all' ? selectedStatus : null,
@@ -63,6 +67,7 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
     return Scaffold(
       appBar: AppBar(
         title: const Text('ค้นหารายการแลกสินค้า'),
+        backgroundColor: Colors.blue[800], // เพิ่มสีแถบด้านบน
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -70,17 +75,22 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'ค้นหาด้วยชื่อรางวัล',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search), // เพิ่มไอคอนค้นหา
               ),
               onChanged: (value) {
                 searchQuery = value; // อัปเดตค่าการค้นหา
               },
             ),
             const SizedBox(height: 10),
-            DropdownButton<String>(
+            DropdownButtonFormField<String>(
               value: selectedStatus,
+              decoration: const InputDecoration(
+                labelText: 'เลือกสถานะ', // เพิ่ม label ให้กับ dropdown
+                border: OutlineInputBorder(),
+              ),
               onChanged: (value) {
                 setState(() {
                   selectedStatus = value!;
@@ -94,9 +104,17 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
               ],
             ),
             const SizedBox(height: 10),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: onSearch,
-              child: const Text('ค้นหา'),
+              icon: const Icon(Icons.search), // เพิ่มไอคอนค้นหาในปุ่ม
+              label: const Text('ค้นหา'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[800],
+                minimumSize: const Size(double.infinity, 50), // ขนาดปุ่มเต็มความกว้าง
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10), // ขอบปุ่มมน
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             Expanded(
@@ -107,24 +125,30 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
                       itemBuilder: (context, index) {
                         final redemption = redemptions[index];
                         return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10), // ขอบการ์ดมน
+                          ),
+                          elevation: 4, // เพิ่มเงาให้การ์ด
                           child: ListTile(
+                            leading: const Icon(Icons.card_giftcard, color: Colors.blue), // เพิ่มไอคอนแสดงรายการ
                             title: Text('รหัสแลกสินค้า: ${redemption['redemption_id']}'),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('รางวัล: ${redemption['reward_name']}'),
                                 Text('รหัสลูกค้า: ${redemption['customer_id']}'),
-                                Text('วันที่แลก: ${redemption['redemption_date']}'),
+                                // แสดงวันที่แลกในรูปแบบไทย
+                                Text('วันที่แลก: ${formatDate(redemption['redemption_date'])}'),
                                 Text('แต้มที่ใช้: ${redemption['points_used']}'),
                                 Text('สถานะ: ${redemption['status']}'),
                               ],
                             ),
-                            trailing: ElevatedButton(
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red), // เพิ่มไอคอนลบ
                               onPressed: () {
                                 // ฟังก์ชันลบการแลกสินค้า
                                 deleteRedemption(redemption['redemption_id']);
                               },
-                              child: const Text('ลบ'),
                             ),
                           ),
                         );
@@ -137,10 +161,15 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
     );
   }
 
+  String formatDate(String date) {
+    DateTime parsedDate = DateTime.parse(date);
+    return DateFormat('d MMMM y', 'th_TH').format(parsedDate); // แสดงวันที่ในรูปแบบไทย
+  }
+
   Future<void> deleteRedemption(String redemptionId) async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.44:3000/redemptions/delete_redemption'),
+        Uri.parse('http://192.168.1.20:3000/redemptions/delete_redemption'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'redemption_id': redemptionId}),
       );

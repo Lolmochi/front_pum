@@ -17,7 +17,7 @@ class _LoginScreen extends State<Login> {
   Future<void> _login() async {
     try {
       var response = await http.post(
-        Uri.parse('http://192.168.1.44:3000/staff/login'),
+        Uri.parse('http://192.168.1.20:3000/staff/login'),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
@@ -28,14 +28,13 @@ class _LoginScreen extends State<Login> {
         }),
       );
 
-      print('Response body: ${response.body}'); // ตรวจสอบการตอบกลับ
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // อาจต้องตรวจสอบข้อมูลที่ตอบกลับจากเซิร์ฟเวอร์ที่นี่
         Navigator.pushNamed(
           context, 
           '/home_staff',
-          arguments: {'staff_id': _idController.text},  // ส่ง staffId ไปยังหน้าจอ /sales
+          arguments: {'staff_id': _idController.text},
         );
       } else if (response.statusCode == 404) {
         setState(() {
@@ -70,48 +69,73 @@ class _LoginScreen extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('เข้าสู่ระบบ'),
+        title: Row(
+          children: [
+            Icon(Icons.login),
+            const SizedBox(width: 10),
+            const Text('เข้าสู่ระบบ'),
+          ],
+        ),
         backgroundColor: Colors.green[800],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: _idController,
-              decoration: const InputDecoration(
-                labelText: 'ชื่อผู้ใช้',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const SizedBox(height: 50),
+              Icon(
+                Icons.account_circle,
+                size: 150, // ไอคอนขนาดใหญ่ตรงกลางหน้าจอ
+                color: Colors.green[700],
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _phoneNumberController,
-              decoration: const InputDecoration(
-                labelText: 'รหัสผ่าน',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock),
+              const SizedBox(height: 30),
+              TextField(
+                controller: _idController,
+                decoration: InputDecoration(
+                  labelText: 'ชื่อผู้ใช้',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.person),
+                  filled: true,
+                  fillColor: Colors.green[50],
+                ),
               ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
+              const SizedBox(height: 20),
+              TextField(
+                controller: _phoneNumberController,
+                decoration: InputDecoration(
+                  labelText: 'รหัสผ่าน',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  filled: true,
+                  fillColor: Colors.green[50],
+                ),
+                obscureText: true,
               ),
-              child: const Text('เข้าสู่ระบบ'),
-            ),
-            const SizedBox(height: 20),
-            IconButton(
-              icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.pushNamed(context, '/login_officer');
-              },
-            ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _login,
+                icon: const Icon(Icons.login),
+                label: const Text('เข้าสู่ระบบ'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green[700],
+                  padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 100),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextButton.icon(
+                icon: const Icon(Icons.person_add),
+                label: const Text('ลงชื่อเข้าใช้ในฐานะเจ้าหน้าที่'),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/login_officer');
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

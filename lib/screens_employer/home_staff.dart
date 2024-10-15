@@ -14,38 +14,52 @@ class HomeStaffScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch, // ขยายให้เต็มความกว้าง
           children: [
             Text(
               'สวัสดีพนักงาน (ID: $staff_id)',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold), // เพิ่มขนาดตัวอักษร
+              textAlign: TextAlign.center, // จัดกึ่งกลาง
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 40), // เว้นระยะห่าง
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(
                   context,
                   '/sales',
-                  arguments: {'staff_id': staff_id}, // Pass staff_id
+                  arguments: {'staff_id': staff_id}, // ส่ง staff_id
                 );
               },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20.0), // เพิ่มความสูงปุ่ม
+                textStyle: const TextStyle(fontSize: 20), // ขนาดตัวอักษร
+              ),
               child: const Text('บันทึกการขายน้ำมัน'),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20), // เว้นระยะห่างระหว่างปุ่ม
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(
                   context,
                   '/get_rewarded',
-                  arguments: {'staff_id': staff_id}, // Pass staff_id
+                  arguments: {'staff_id': staff_id}, // ส่ง staff_id
                 );
               },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20.0), // เพิ่มความสูงปุ่ม
+                textStyle: const TextStyle(fontSize: 20), // ขนาดตัวอักษร
+              ),
               child: const Text('รับสินค้าที่แลกไว้'),
             ),
+            const SizedBox(height: 20), // เว้นระยะห่างระหว่างปุ่ม
             ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login'); // Navigate back to login
+                Navigator.pushReplacementNamed(context, '/login'); // กลับไปหน้าลงชื่อเข้าใช้
               },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20.0), // เพิ่มความสูงปุ่ม
+                textStyle: const TextStyle(fontSize: 20), // ขนาดตัวอักษร
+              ),
               child: const Text('ออกจากระบบ'),
             ),
           ],

@@ -50,7 +50,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://192.168.1.44:3000/rewards'),
+      Uri.parse('http://192.168.1.20:3000/rewards'),
     );
     
     // Add generated reward_id to request fields
@@ -102,56 +102,79 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            GestureDetector(
-              onTap: _pickImage,
-              child: _image == null
-                  ? Container(
-                      height: 150,
-                      width: double.infinity,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.camera_alt, size: 50),
-                    )
-                  : Image.file(
-                      _image!,
-                      height: 150,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _rewardNameController,
-              decoration: const InputDecoration(
-                labelText: 'Reward Name',
-                border: OutlineInputBorder(),
+        child: SingleChildScrollView( // เพิ่ม SingleChildScrollView ให้กับฟอร์ม
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              GestureDetector(
+                onTap: _pickImage,
+                child: _image == null
+                    ? Container(
+                        height: 150,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10), // ขอบมน
+                          border: Border.all(color: Colors.grey, width: 2),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.camera_alt, size: 50, color: Colors.blueGrey), // ไอคอนกล้อง
+                        ),
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(10), // ขอบมนรูปภาพ
+                        child: Image.file(
+                          _image!,
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _pointsRequiredController,
-              decoration: const InputDecoration(
-                labelText: 'Points Required',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _rewardNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Reward Name',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.card_giftcard), // ไอคอนรางวัล
+                ),
               ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _pointsRequiredController,
+                decoration: const InputDecoration(
+                  labelText: 'Points Required',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.stars), // ไอคอนคะแนน
+                ),
+                keyboardType: TextInputType.number,
               ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submitReward,
-              child: const Text('Submit Reward'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.description), // ไอคอนคำอธิบาย
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon( // ใช้ ElevatedButton ที่มีไอคอน
+                onPressed: _submitReward,
+                icon: const Icon(Icons.send), // ไอคอนส่ง
+                label: const Text('Submit Reward'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[800],
+                  minimumSize: const Size(double.infinity, 50), // ปุ่มเต็มความกว้าง
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10), // ขอบมน
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

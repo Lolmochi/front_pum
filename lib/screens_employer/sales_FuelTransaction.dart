@@ -8,8 +8,6 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
-
-
 class FuelTransactionScreen extends StatefulWidget {
   final String staff_id;
 
@@ -23,7 +21,7 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   String selectedFuelType = 'ดีเซล B7';
-  String baseUrl = 'http://192.168.1.44:3000';
+  String baseUrl = 'http://192.168.1.20:3000';
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   List<BluetoothDevice> _devices = [];
   BluetoothDevice? _selectedDevice;
@@ -100,94 +98,84 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
     });
   }
 
+  Future<void> submitTransaction() async {
+    final phone = phoneController.text.replaceAll('-', '').trim();
+    final price = double.tryParse(priceController.text);
+    print('staff_id: ${widget.staff_id}');
 
-
-Future<void> submitTransaction() async {
-  final phone = phoneController.text.replaceAll('-', '').trim();
-  final price = double.tryParse(priceController.text);
-  print('staff_id: ${widget.staff_id}');
-
-  if (price == null || price <= 0) {
-    _showSnackBar('กรุณากรอกราคาที่ถูกต้อง');
-    return;
-  }
-
-  try {
-    // Send transaction data to the server
-    final transactionResponse = await http.post(
-      Uri.parse('$baseUrl/transactions'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'phone_number': phone,
-        'fuel_type': selectedFuelType,
-        'points_earned': price,
-        'staff_id': widget.staff_id,
-      }),
-    );
-
-    print('Status Code: ${transactionResponse.statusCode}');
-    print('Response Body: ${transactionResponse.body}');
-
-    if (transactionResponse.statusCode == 200) {
-      final Map<String, dynamic> transaction = json.decode(transactionResponse.body);
-
-      // Update to match the server response key
-      final String? transactionId = transaction['transactionId']?.toString();
-
-      if (transactionId == null || transactionId.isEmpty) {
-        _showSnackBar('ไม่สามารถรับหมายเลขรายการจากเซิร์ฟเวอร์ได้.');
-        return;
-      }
-
-      final pointsEarned = transaction['pointsEarned'] ?? 0;
-
-      // Fetch member and staff data
-      final memberResponse = await http.get(Uri.parse('$baseUrl/customers/$phone'));
-      final staffResponse = await http.get(Uri.parse('$baseUrl/staff/${widget.staff_id}'));
-
-      if (memberResponse.statusCode == 200 && staffResponse.statusCode == 200) {
-        final memberData = json.decode(memberResponse.body);
-        final staffData = json.decode(staffResponse.body);
-
-        // Calculate dividend
-        const dividendPercentage = 0.01;
-        final dividend = price * dividendPercentage;
-
-        // Navigate to ReceiptScreen with the correct transaction_id
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ReceiptScreen(
-              transactionId: transactionId,  // Use the server-generated transaction_id
-              phoneNumber: phone,
-              fuelType: selectedFuelType,
-              price: price,
-              pointsEarned: pointsEarned,
-              dividend: dividend,
-              staffFirstName: staffData['first_name'],
-              staffLastName: staffData['last_name'],
-              memberId: memberData['customer_id'].toString(),
-              memberFirstName: memberData['first_name'],
-              memberLastName: memberData['last_name'],
-              staffId: widget.staff_id,
-              selectedDevice: _selectedDevice,
-            ),
-          ),
-        );
-      } else {
-        _showSnackBar('ไม่สามารถดึงข้อมูลสมาชิกหรือพนักงานได้.');
-      }
-    } else {
-      print('Error: ${transactionResponse.body}');
-      _showSnackBar('บันทึกการขายล้มเหลว!');
+    if (price == null || price <= 0) {
+      _showSnackBar('กรุณากรอกราคาที่ถูกต้อง');
+      return;
     }
-  } catch (e) {
-    _showSnackBar('เกิดข้อผิดพลาด. กรุณาลองใหม่อีกครั้ง.');
-    print('Exception: $e');
+
+    try {
+      final transactionResponse = await http.post(
+        Uri.parse('$baseUrl/transactions'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'phone_number': phone,
+          'fuel_type': selectedFuelType,
+          'points_earned': price,
+          'staff_id': widget.staff_id,
+        }),
+      );
+
+      print('Status Code: ${transactionResponse.statusCode}');
+      print('Response Body: ${transactionResponse.body}');
+
+      if (transactionResponse.statusCode == 200) {
+        final Map<String, dynamic> transaction = json.decode(transactionResponse.body);
+        final String? transactionId = transaction['transactionId']?.toString();
+
+        if (transactionId == null || transactionId.isEmpty) {
+          _showSnackBar('ไม่สามารถรับหมายเลขรายการจากเซิร์ฟเวอร์ได้.');
+          return;
+        }
+
+        final pointsEarned = transaction['pointsEarned'] ?? 0;
+
+        final memberResponse = await http.get(Uri.parse('$baseUrl/customers/$phone'));
+        final staffResponse = await http.get(Uri.parse('$baseUrl/staff/${widget.staff_id}'));
+
+        if (memberResponse.statusCode == 200 && staffResponse.statusCode == 200) {
+          final memberData = json.decode(memberResponse.body);
+          final staffData = json.decode(staffResponse.body);
+
+          const dividendPercentage = 0.01;
+          final dividend = price * dividendPercentage;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ReceiptScreen(
+                transactionId: transactionId,
+                phoneNumber: phone,
+                fuelType: selectedFuelType,
+                price: price,
+                pointsEarned: pointsEarned,
+                dividend: dividend,
+                staffFirstName: staffData['first_name'],
+                staffLastName: staffData['last_name'],
+                memberId: memberData['customer_id'].toString(),
+                memberFirstName: memberData['first_name'],
+                memberLastName: memberData['last_name'],
+                staffId: widget.staff_id,
+                selectedDevice: _selectedDevice,
+              ),
+            ),
+          );
+        } else {
+          _showSnackBar('ไม่สามารถดึงข้อมูลสมาชิกหรือพนักงานได้.');
+        }
+      } else {
+        print('Error: ${transactionResponse.body}');
+        _showSnackBar('บันทึกการขายล้มเหลว!');
+      }
+    } catch (e) {
+      _showSnackBar('เกิดข้อผิดพลาด. กรุณาลองใหม่อีกครั้ง.');
+      print('Exception: $e');
+    }
   }
-}
-
-
 
   Future<void> confirmTransaction() async {
     final phone = phoneController.text.replaceAll('-', '').trim();
@@ -257,73 +245,94 @@ Future<void> submitTransaction() async {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: phoneController,
-              decoration: const InputDecoration(labelText: 'เบอร์โทร'),
-              keyboardType: TextInputType.phone,
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: phoneController,
+                      decoration: const InputDecoration(labelText: 'เบอร์โทร'),
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      value: selectedFuelType,
+                      decoration: const InputDecoration(labelText: 'ประเภทน้ำมัน'),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedFuelType = value!;
+                        });
+                      },
+                      items: ['ดีเซล B7', 'ดีเซล B10', 'แก๊สโซฮอล์ E20', 'แก๊สโซฮอล์ 91', 'แก๊สโซฮอล์ 95', 'ซูเปอร์พาวเวอร์ดีเซล B7', 'ซูเปอร์พาวเวอร์แก๊สโซฮอล์ 95']
+                          .map((fuelType) => DropdownMenuItem(
+                                value: fuelType,
+                                child: Text(fuelType),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: priceController,
+                      decoration: const InputDecoration(labelText: 'ราคา'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: scanBarcode,
+                            child: const Text('สแกนบาร์โค้ด'),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: confirmTransaction,
+                            child: const Text('ยืนยัน'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: connectToBluetooth,
+                      child: const Text('เชื่อมต่อ Bluetooth'),
+                    ),
+                    const SizedBox(height: 10),
+                    _devices.isNotEmpty
+                        ? DropdownButton<BluetoothDevice>(
+                            value: _selectedDevice,
+                            hint: const Text('เลือกอุปกรณ์ Bluetooth'),
+                            onChanged: (BluetoothDevice? device) {
+                              setState(() {
+                                _selectedDevice = device;
+                              });
+                            },
+                            items: _devices
+                                .map((device) => DropdownMenuItem(
+                                      value: device,
+                                      child: Text(device.name ?? ''),
+                                    ))
+                                .toList(),
+                          )
+                        : const Text('ไม่มีอุปกรณ์ที่จับคู่'),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: selectedFuelType,
-              decoration: const InputDecoration(labelText: 'ประเภทน้ำมัน'),
-              onChanged: (newValue) {
-                setState(() {
-                  selectedFuelType = newValue!;
-                });
-              },
-              items: [
-                'ดีเซล B7',
-                'ดีเซล B10',
-                'แก๊สโซฮอล์ E20',
-                'แก๊สโซฮอล์ 91',
-                'แก๊สโซฮอล์ 95',
-                'ซูเปอร์พาวเวอร์ดีเซล B7',
-                'ซูเปอร์พาวเวอร์แก๊สโซฮอล์ 95'
-              ].map((fuelType) => DropdownMenuItem(
-                value: fuelType,
-                child: Text(fuelType),
-              )).toList(),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: priceController,
-              decoration: const InputDecoration(labelText: 'ราคา'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 20),
-            DropdownButtonFormField<BluetoothDevice>(
-              value: _selectedDevice,
-              decoration: const InputDecoration(labelText: 'เลือกอุปกรณ์บลูทูธ'),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedDevice = newValue;
-                });
-              },
-              items: _devices.map((device) {
-                return DropdownMenuItem(
-                  value: device,
-                  child: Text(device.name ?? 'Unnamed device'),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: connectToBluetooth,
-              child: const Text('เชื่อมต่อ Bluetooth'),
-            ),
-            ElevatedButton(
-              onPressed: confirmTransaction,
-              child: const Text('บันทึกการขาย'),
-            ),
-            ElevatedButton(
-              onPressed: scanBarcode,
-              child: const Text('Scan Phone Number'),
-            ),            
           ],
         ),
       ),
     );
   }
+}
+
 
   String generateTransactionId() {
     const String chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -334,7 +343,6 @@ Future<void> submitTransaction() async {
     final String timestamp = DateFormat('yyyyMMddHHmmss').format(DateTime.now());
     return '$timestamp$randomString';
   }
-}
 
 class ReceiptScreen extends StatelessWidget {
   final String transactionId;

@@ -25,7 +25,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
   }
 
   Future<List<dynamic>> _fetchRewards([String query = '']) async {
-    final response = await http.get(Uri.parse('http://192.168.1.44:3000/rewards?query=$query'));
+    final response = await http.get(Uri.parse('http://192.168.1.20:3000/rewards?query=$query'));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -46,7 +46,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
   }
 
   Future<void> _updateReward(String rewardId, String rewardName, int pointsRequired, String description, File? imageFile) async {
-    var uri = Uri.parse('http://192.168.1.44:3000/rewards/$rewardId');
+    var uri = Uri.parse('http://192.168.1.20:3000/rewards/$rewardId');
     var request = http.MultipartRequest('PUT', uri);
 
     request.fields['reward_name'] = rewardName;
@@ -72,6 +72,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search and Edit Rewards'),
+        backgroundColor: Colors.blue[800], // เปลี่ยนสีของ AppBar
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -109,20 +110,27 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                       itemBuilder: (context, index) {
                         final reward = rewards[index];
                         return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10), // ขอบการ์ดมน
+                          ),
+                          elevation: 4, // เงาของการ์ด
+                          margin: const EdgeInsets.symmetric(vertical: 8), // ระยะห่างระหว่างการ์ด
                           child: ListTile(
-                            leading: Image.network(
-                              'http://192.168.1.44:3000/uploads/${reward['image']}',
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.image_not_supported, size: 50);
-                              },
+                            leading: ClipOval(
+                              child: Image.network(
+                                'http://192.168.1.20:3000/uploads/${reward['image']}',
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.image_not_supported, size: 50);
+                                },
+                              ),
                             ),
                             title: Text(reward['reward_name']),
                             subtitle: Text('Points: ${reward['points_required']}'),
                             trailing: IconButton(
-                              icon: const Icon(Icons.edit),
+                              icon: const Icon(Icons.edit, color: Colors.blue), // เปลี่ยนสีไอคอนแก้ไข
                               onPressed: () {
                                 showEditDialog(reward);
                               },
@@ -171,12 +179,15 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                 _selectedImage != null
                     ? Image.file(_selectedImage!, height: 100)
                     : Image.network(
-                        'http://192.168.1.44:3000/uploads/${reward['image']}',
+                        'http://192.168.1.20:3000/uploads/${reward['image']}',
                         height: 100,
                       ),
                 ElevatedButton(
                   onPressed: _pickImage,
                   child: const Text('Change Image'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white, backgroundColor: Colors.blue[800], // สีตัวอักษร
+                  ),
                 ),
               ],
             ),
