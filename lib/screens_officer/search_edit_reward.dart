@@ -45,13 +45,14 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     }
   }
 
-  Future<void> _updateReward(String rewardId, String rewardName, int pointsRequired, String description, File? imageFile) async {
+  Future<void> _updateReward(String rewardId, String rewardName, int pointsRequired, String description, int quantity, File? imageFile) async {
     var uri = Uri.parse('http://192.168.1.20:3000/rewards/$rewardId');
     var request = http.MultipartRequest('PUT', uri);
 
     request.fields['reward_name'] = rewardName;
     request.fields['points_required'] = pointsRequired.toString();
     request.fields['description'] = description;
+    request.fields['quantity'] = quantity.toString();  // Added quantity field
 
     if (imageFile != null) {
       request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
@@ -72,7 +73,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search and Edit Rewards'),
-        backgroundColor: Colors.blue[800], // เปลี่ยนสีของ AppBar
+        backgroundColor: Colors.blue[800],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -111,10 +112,10 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                         final reward = rewards[index];
                         return Card(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10), // ขอบการ์ดมน
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          elevation: 4, // เงาของการ์ด
-                          margin: const EdgeInsets.symmetric(vertical: 8), // ระยะห่างระหว่างการ์ด
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
                           child: ListTile(
                             leading: ClipOval(
                               child: Image.network(
@@ -130,7 +131,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                             title: Text(reward['reward_name']),
                             subtitle: Text('Points: ${reward['points_required']}'),
                             trailing: IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue), // เปลี่ยนสีไอคอนแก้ไข
+                              icon: const Icon(Icons.edit, color: Colors.blue),
                               onPressed: () {
                                 showEditDialog(reward);
                               },
@@ -153,6 +154,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
     final TextEditingController rewardNameController = TextEditingController(text: reward['reward_name']);
     final TextEditingController pointsController = TextEditingController(text: reward['points_required'].toString());
     final TextEditingController descriptionController = TextEditingController(text: reward['description']);
+    final TextEditingController quantityController = TextEditingController(text: reward['quantity'].toString()); // Added quantity controller
 
     showDialog(
       context: context,
@@ -175,6 +177,11 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                   controller: descriptionController,
                   decoration: const InputDecoration(labelText: 'Description'),
                 ),
+                TextField(
+                  controller: quantityController,  // Added quantity input
+                  decoration: const InputDecoration(labelText: 'Quantity'),
+                  keyboardType: TextInputType.number,  // For number input
+                ),
                 const SizedBox(height: 10),
                 _selectedImage != null
                     ? Image.file(_selectedImage!, height: 100)
@@ -186,7 +193,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                   onPressed: _pickImage,
                   child: const Text('Change Image'),
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor: Colors.blue[800], // สีตัวอักษร
+                    foregroundColor: Colors.white, backgroundColor: Colors.blue[800],
                   ),
                 ),
               ],
@@ -207,6 +214,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                     rewardNameController.text,
                     int.parse(pointsController.text),
                     descriptionController.text,
+                    int.parse(quantityController.text),  // Send updated quantity
                     _selectedImage,
                   );
                   Navigator.of(context).pop();
@@ -214,7 +222,6 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                     _rewards = _fetchRewards(_searchController.text);
                   });
                 } catch (e) {
-                  // แสดงข้อความข้อผิดพลาดหากการอัปเดตไม่สำเร็จ
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error updating reward: $e')),
                   );

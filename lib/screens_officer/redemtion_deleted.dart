@@ -146,8 +146,8 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red), // เพิ่มไอคอนลบ
                               onPressed: () {
-                                // ฟังก์ชันลบการแลกสินค้า
-                                deleteRedemption(redemption['redemption_id']);
+                                // ฟังก์ชันแสดง popup ยืนยันก่อนลบ
+                                showDeleteConfirmationDialog(redemption['redemption_id']);
                               },
                             ),
                           ),
@@ -164,6 +164,34 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
   String formatDate(String date) {
     DateTime parsedDate = DateTime.parse(date);
     return DateFormat('d MMMM y', 'th_TH').format(parsedDate); // แสดงวันที่ในรูปแบบไทย
+  }
+
+  // ฟังก์ชันแสดง popup ยืนยันก่อนลบ
+  void showDeleteConfirmationDialog(String redemptionId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('ยืนยันการลบ'),
+          content: Text('คุณแน่ใจหรือไม่ว่าต้องการลบรายการ $redemptionId?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('ยกเลิก'),
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิด popup โดยไม่ลบ
+              },
+            ),
+            TextButton(
+              child: const Text('ลบ'),
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิด popup ก่อนลบ
+                deleteRedemption(redemptionId); // เรียกฟังก์ชันลบข้อมูล
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> deleteRedemption(String redemptionId) async {

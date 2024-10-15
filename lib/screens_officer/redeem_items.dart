@@ -14,6 +14,7 @@ class RewardManagementPage extends StatefulWidget {
 class _RewardManagementPageState extends State<RewardManagementPage> {
   final _rewardNameController = TextEditingController();
   final _pointsRequiredController = TextEditingController();
+  final _quantityController = TextEditingController();  // Controller สำหรับจำนวนสินค้า
   final _descriptionController = TextEditingController();
   File? _image;
   final ImagePicker _picker = ImagePicker();
@@ -35,6 +36,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
     if (_image == null ||
         _rewardNameController.text.isEmpty ||
         _pointsRequiredController.text.isEmpty ||
+        _quantityController.text.isEmpty ||  // ตรวจสอบว่ามีการกรอกข้อมูล `quantity`
         _descriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please fill all the fields and select an image'),
@@ -45,6 +47,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
 
     String rewardName = _rewardNameController.text;
     String pointsRequired = _pointsRequiredController.text;
+    String quantity = _quantityController.text;  // เพิ่มการอ่านข้อมูลจำนวนสินค้า
     String description = _descriptionController.text;
     String rewardId = generateRewardId(); // Generate reward_id
 
@@ -53,10 +56,11 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
       Uri.parse('http://192.168.1.20:3000/rewards'),
     );
     
-    // Add generated reward_id to request fields
+    // Add generated reward_id and quantity to request fields
     request.fields['reward_id'] = rewardId;
     request.fields['reward_name'] = rewardName;
     request.fields['points_required'] = pointsRequired;
+    request.fields['quantity'] = quantity;  // เพิ่ม `quantity` ไปในฟิลด์ของ request
     request.fields['description'] = description;
     
     if (_image != null) {
@@ -74,6 +78,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
         // Clear the form
         _rewardNameController.clear();
         _pointsRequiredController.clear();
+        _quantityController.clear();  // เคลียร์ฟิลด์ `quantity`
         _descriptionController.clear();
         setState(() {
           _image = null;
@@ -102,7 +107,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // เพิ่ม SingleChildScrollView ให้กับฟอร์ม
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -114,15 +119,15 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10), // ขอบมน
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.grey, width: 2),
                         ),
                         child: const Center(
-                          child: Icon(Icons.camera_alt, size: 50, color: Colors.blueGrey), // ไอคอนกล้อง
+                          child: Icon(Icons.camera_alt, size: 50, color: Colors.blueGrey),
                         ),
                       )
                     : ClipRRect(
-                        borderRadius: BorderRadius.circular(10), // ขอบมนรูปภาพ
+                        borderRadius: BorderRadius.circular(10),
                         child: Image.file(
                           _image!,
                           height: 150,
@@ -137,7 +142,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
                 decoration: const InputDecoration(
                   labelText: 'Reward Name',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.card_giftcard), // ไอคอนรางวัล
+                  prefixIcon: Icon(Icons.card_giftcard),
                 ),
               ),
               const SizedBox(height: 20),
@@ -146,7 +151,17 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
                 decoration: const InputDecoration(
                   labelText: 'Points Required',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.stars), // ไอคอนคะแนน
+                  prefixIcon: Icon(Icons.stars),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _quantityController,  // ฟิลด์สำหรับจำนวนสินค้า
+                decoration: const InputDecoration(
+                  labelText: 'Quantity',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.production_quantity_limits),
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -156,20 +171,20 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
                 decoration: const InputDecoration(
                   labelText: 'Description',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description), // ไอคอนคำอธิบาย
+                  prefixIcon: Icon(Icons.description),
                 ),
                 maxLines: 3,
               ),
               const SizedBox(height: 20),
-              ElevatedButton.icon( // ใช้ ElevatedButton ที่มีไอคอน
+              ElevatedButton.icon(
                 onPressed: _submitReward,
-                icon: const Icon(Icons.send), // ไอคอนส่ง
+                icon: const Icon(Icons.send),
                 label: const Text('Submit Reward'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[800],
-                  minimumSize: const Size(double.infinity, 50), // ปุ่มเต็มความกว้าง
+                  minimumSize: const Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // ขอบมน
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),

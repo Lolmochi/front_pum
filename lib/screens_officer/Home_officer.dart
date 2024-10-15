@@ -70,13 +70,6 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.person, color: Colors.teal),
-              title: const Text('Profile'),
-              onTap: () {
-                Navigator.pushNamed(context, '/profile', arguments: widget.officer_id);
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.search, color: Colors.teal),
               title: const Text('Transactions'),
               onTap: () {

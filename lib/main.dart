@@ -11,7 +11,7 @@ import 'screens_employer/home_staff.dart';
 import 'screens_employer/get_rewarded.dart';
 import 'screens_officer/history_of_year.dart';
 import 'screens_officer/FuelTypeStats.dart';
-import 'screens_officer/ProfileScreen.dart'; // Profile screen
+
 
 
 void main() => runApp(const MyApp());
@@ -64,7 +64,6 @@ class MyApp extends StatelessWidget {
         '/redemption_deleted': (context) => const Search_deleteRedemptionsScreen(), 
         '/history_of_year':(context) => const AnnualProcessingScreen(),
         '/FuelTypeStats':(context) => const FuelTypeStatsPage(),
-        '/profile': (context) => ProfileScreen()
       },
     );
   }
