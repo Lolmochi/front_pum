@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class FuelTransactionScreen extends StatefulWidget {
   final String staff_id;
@@ -25,12 +24,21 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   List<BluetoothDevice> _devices = [];
   BluetoothDevice? _selectedDevice;
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  Barcode? result;
+  QRViewController? controller;
 
   @override
   void initState() {
     super.initState();
     requestBluetoothPermissions();
     getPairedDevices();
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
   }
 
   Future<void> requestBluetoothPermissions() async {
@@ -76,25 +84,33 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
     }
   }
 
-  String _scanResult = ''; // ประกาศและกำหนดค่าเริ่มต้นให้ _scanResult
+  Future<void> scanQRCode(BuildContext context) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QRView(
+          key: qrKey,
+          onQRViewCreated: _onQRViewCreated,
+        ),
+      ),
+    );
+  }
 
-  Future<void> scanBarcode() async {
-    String barcodeScanRes;
-    try {
-      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', // สีของแถบสแกน
-        'ยกเลิก', // ปุ่มยกเลิก
-        true, // สแกนหลายรูปแบบ (QR, Barcode)
-        ScanMode.BARCODE, // โหมดสแกนบาร์โค้ด
-      );
-    } on PlatformException {
-      barcodeScanRes = 'ไม่สามารถเชื่อมต่อกับแพลตฟอร์มได้';
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      _scanResult = barcodeScanRes; // กำหนดค่าผลการสแกนให้กับ _scanResult
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+        controller.pauseCamera();
+        if (result != null) {
+          // ตรวจสอบและแยกข้อมูลจาก QR Code
+          String scannedPhoneNumber = result!.code ?? '';
+          
+          // เติมข้อมูลเบอร์โทรที่สแกนได้ลงในช่องเบอร์โทร
+          phoneController.text = scannedPhoneNumber;
+        }
+        Navigator.pop(context); // ปิดหน้าสแกน QR
+      });
     });
   }
 
@@ -119,9 +135,6 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
           'staff_id': widget.staff_id,
         }),
       );
-
-      print('Status Code: ${transactionResponse.statusCode}');
-      print('Response Body: ${transactionResponse.body}');
 
       if (transactionResponse.statusCode == 200) {
         final Map<String, dynamic> transaction = json.decode(transactionResponse.body);
@@ -168,46 +181,10 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
           _showSnackBar('ไม่สามารถดึงข้อมูลสมาชิกหรือพนักงานได้.');
         }
       } else {
-        print('Error: ${transactionResponse.body}');
         _showSnackBar('บันทึกการขายล้มเหลว!');
       }
     } catch (e) {
       _showSnackBar('เกิดข้อผิดพลาด. กรุณาลองใหม่อีกครั้ง.');
-      print('Exception: $e');
-    }
-  }
-
-  Future<void> confirmTransaction() async {
-    final phone = phoneController.text.replaceAll('-', '').trim();
-    final price = double.tryParse(priceController.text);
-
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('ยืนยันการทำรายการ'),
-          content: Text(
-              'เบอร์โทร: $phone\nประเภทน้ำมัน: $selectedFuelType\nราคา: ฿${price?.toStringAsFixed(2)}\nคุณต้องการทำรายการนี้หรือไม่?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('ยกเลิก'),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text('ยืนยัน'),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm == true) {
-      await submitTransaction();
     }
   }
 
@@ -286,14 +263,14 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: scanBarcode,
-                            child: const Text('สแกนบาร์โค้ด'),
+                            onPressed: () => scanQRCode(context),
+                            child: const Text('สแกน QR Code'),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: confirmTransaction,
+                            onPressed: submitTransaction,
                             child: const Text('ยืนยัน'),
                           ),
                         ),
@@ -317,11 +294,11 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
                             items: _devices
                                 .map((device) => DropdownMenuItem(
                                       value: device,
-                                      child: Text(device.name ?? ''),
+                                      child: Text(device.name ?? ""),
                                     ))
                                 .toList(),
                           )
-                        : const Text('ไม่มีอุปกรณ์ที่จับคู่'),
+                        : const Text('ไม่พบอุปกรณ์ Bluetooth'),
                   ],
                 ),
               ),
@@ -334,15 +311,7 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
 }
 
 
-  String generateTransactionId() {
-    const String chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final Random rnd = Random();
-    final String randomString = String.fromCharCodes(
-      Iterable.generate(10, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))),
-    );
-    final String timestamp = DateFormat('yyyyMMddHHmmss').format(DateTime.now());
-    return '$timestamp$randomString';
-  }
+
 
 class ReceiptScreen extends StatelessWidget {
   final String transactionId;

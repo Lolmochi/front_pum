@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class GetRewardedScreen extends StatefulWidget {
   final String staff_id;
@@ -14,12 +15,23 @@ class GetRewardedScreen extends StatefulWidget {
 
 class _GetRewardedScreenState extends State<GetRewardedScreen> {
   List<dynamic> pendingRedemptions = [];
+  List<dynamic> filteredRedemptions = [];
   bool isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  QRViewController? controller;
+  bool isScanning = false; // ใช้เพื่อเช็คสถานะการสแกน
 
   @override
   void initState() {
     super.initState();
-    fetchPendingRedemptions(); // ดึงข้อมูลรายการการแลกสินค้าเมื่อเริ่มต้น
+    fetchPendingRedemptions();
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
   }
 
   Future<void> fetchPendingRedemptions() async {
@@ -49,6 +61,26 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
     }
   }
 
+  void _filterRedemptions() {
+    String searchTerm = _searchController.text.toLowerCase();
+    setState(() {
+      filteredRedemptions = pendingRedemptions.where((redemption) {
+        return redemption['redemption_id'].toString().toLowerCase() == searchTerm;
+      }).toList();
+    });
+  }
+
+  String formatThaiDate(String dateStr) {
+    try {
+      DateTime parsedDate = DateTime.parse(dateStr).toUtc();
+      DateTime thaiDate = parsedDate.add(Duration(hours: 7));
+      return DateFormat('dd/MM/yyyy HH:mm').format(thaiDate);
+    } catch (e) {
+      print('Error parsing date: $e');
+      return dateStr;
+    }
+  }
+
   Future<void> completeRedemption(String redemptionId) async {
     try {
       final response = await http.post(
@@ -63,6 +95,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
       if (response.statusCode == 200) {
         setState(() {
           pendingRedemptions.removeWhere((item) => item['redemption_id'] == redemptionId);
+          _filterRedemptions();
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('สถานะการแลกเปลี่ยนสำหรับ $redemptionId อัปเดตสำเร็จ!')),
@@ -78,16 +111,74 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
     }
   }
 
-  // ฟังก์ชันสำหรับแปลงเวลาเป็นเวลาไทย
-  String formatThaiDate(String dateStr) {
-    try {
-      DateTime parsedDate = DateTime.parse(dateStr).toUtc();
-      DateTime thaiDate = parsedDate.add(Duration(hours: 7));
-      return DateFormat('dd/MM/yyyy HH:mm').format(thaiDate);
-    } catch (e) {
-      print('Error parsing date: $e');
-      return dateStr;
-    }
+  void _showConfirmationDialog(String redemptionId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('ยืนยันการทำรายการ'),
+          content: const Text('คุณต้องการยืนยันการรับสินค้าหรือไม่?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // ปิดป็อปอัพ
+              },
+              child: const Text('ยกเลิก'),
+            ),
+            TextButton(
+              onPressed: () {
+                completeRedemption(redemptionId); // เรียกฟังก์ชันยืนยัน
+                Navigator.of(context).pop(); // ปิดป็อปอัพหลังจากยืนยัน
+              },
+              child: const Text('ยืนยัน'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        _searchController.text = scanData.code!; // อัปเดตค่าตัวค้นหา
+        _filterRedemptions(); // เรียกฟังก์ชันกรอง
+      });
+    });
+  }
+
+  void _showQRCodeScanner() {
+    setState(() {
+      isScanning = true;
+    });
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('สแกน QR Code'),
+          content: SizedBox(
+            height: 300,
+            child: QRView(
+              key: qrKey,
+              onQRViewCreated: _onQRViewCreated,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                controller?.pauseCamera();
+                setState(() {
+                  isScanning = false;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('ปิด'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -106,15 +197,39 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
+            TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                labelText: 'กรอกรหัสของรางวัลเพื่อค้นหา',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                if (value.isNotEmpty) {
+                  _filterRedemptions();
+                  if (isScanning) {
+                    controller?.pauseCamera();
+                    setState(() {
+                      isScanning = false;
+                    });
+                    Navigator.of(context).pop(); // ปิดป็อปอัพเมื่อป้อนข้อมูลแล้ว
+                  }
+                } else {
+                  setState(() {
+                    filteredRedemptions = [];
+                  });
+                }
+              }
+            ),
+            const SizedBox(height: 20),
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator()) 
-                  : pendingRedemptions.isEmpty
-                      ? const Center(child: Text('ไม่มีรายการแลกสินค้า'))
+                  ? const Center(child: CircularProgressIndicator())
+                  : filteredRedemptions.isEmpty
+                      ? const Center(child: Text('กรอกรหัสของรางวัลเพื่อค้นหา'))
                       : ListView.builder(
-                          itemCount: pendingRedemptions.length,
+                          itemCount: filteredRedemptions.length,
                           itemBuilder: (context, index) {
-                            final redemption = pendingRedemptions[index];
+                            final redemption = filteredRedemptions[index];
                             return Card(
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               elevation: 4,
@@ -135,13 +250,14 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                                     Text('รหัสของรางวัล: ${redemption['reward_id']}'),
                                     Text('วันที่แลก: ${formatThaiDate(redemption['redemption_date'])}'),
                                     Text('แต้มที่ใช้: ${redemption['points_used']}'),
+                                    Text('จำนวนของ: ${redemption['quantity']}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                     const SizedBox(height: 10),
                                     Divider(color: Colors.grey[400]),
                                     Align(
                                       alignment: Alignment.centerRight,
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          completeRedemption(redemption['redemption_id']);
+                                          _showConfirmationDialog(redemption['redemption_id']);
                                         },
                                         child: const Text('ยืนยันรับสินค้า'),
                                       ),
@@ -152,6 +268,11 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                             );
                           },
                         ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _showQRCodeScanner,
+              child: const Text('แสกน QR Code'),
             ),
           ],
         ),

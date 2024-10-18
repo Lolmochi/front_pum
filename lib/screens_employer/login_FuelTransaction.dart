@@ -24,7 +24,7 @@ class _LoginScreen extends State<Login> {
         },
         body: jsonEncode({
           'staff_id': _idController.text,
-          'phone_number': _phoneNumberController.text,
+          'password': _phoneNumberController.text,
         }),
       );
 
@@ -38,7 +38,7 @@ class _LoginScreen extends State<Login> {
         );
       } else if (response.statusCode == 404) {
         setState(() {
-          errorMessage = 'รหัสหรือเบอร์โทรศัพท์ไม่ถูกต้อง';
+          errorMessage = 'ไอดีพนักงานหรือรหัสไม่ถูกต้อง';
         });
         _showSnackBar(errorMessage, Colors.red);
       } else {

@@ -29,7 +29,7 @@ class _OfficerLoginState extends State<OfficerLogin> {
         },
         body: jsonEncode({
           'officer_id': _officerIdController.text,
-          'phone_number': _phoneNumberController.text,
+          'password': _phoneNumberController.text,
         }),
       );
 

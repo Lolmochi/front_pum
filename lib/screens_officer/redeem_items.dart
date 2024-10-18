@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class RewardManagementPage extends StatefulWidget {
   const RewardManagementPage({super.key});
@@ -14,16 +14,10 @@ class RewardManagementPage extends StatefulWidget {
 class _RewardManagementPageState extends State<RewardManagementPage> {
   final _rewardNameController = TextEditingController();
   final _pointsRequiredController = TextEditingController();
-  final _quantityController = TextEditingController();  // Controller สำหรับจำนวนสินค้า
+  final _quantityController = TextEditingController();
   final _descriptionController = TextEditingController();
   File? _image;
   final ImagePicker _picker = ImagePicker();
-
-  // Function to generate a random 10-character alphanumeric reward ID
-  String generateRewardId() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    return List.generate(10, (index) => chars[Random().nextInt(chars.length)]).join('');
-  }
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -33,11 +27,11 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
   }
 
   Future<void> _submitReward() async {
-    if (_image == null ||
-        _rewardNameController.text.isEmpty ||
+    if (_rewardNameController.text.isEmpty ||
         _pointsRequiredController.text.isEmpty ||
-        _quantityController.text.isEmpty ||  // ตรวจสอบว่ามีการกรอกข้อมูล `quantity`
-        _descriptionController.text.isEmpty) {
+        _quantityController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _image == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Please fill all the fields and select an image'),
         backgroundColor: Colors.red,
@@ -47,22 +41,21 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
 
     String rewardName = _rewardNameController.text;
     String pointsRequired = _pointsRequiredController.text;
-    String quantity = _quantityController.text;  // เพิ่มการอ่านข้อมูลจำนวนสินค้า
+    String quantity = _quantityController.text;
     String description = _descriptionController.text;
-    String rewardId = generateRewardId(); // Generate reward_id
 
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('http://192.168.1.20:3000/rewards'),
     );
-    
-    // Add generated reward_id and quantity to request fields
-    request.fields['reward_id'] = rewardId;
+
+    // เพิ่มข้อมูล reward
     request.fields['reward_name'] = rewardName;
     request.fields['points_required'] = pointsRequired;
-    request.fields['quantity'] = quantity;  // เพิ่ม `quantity` ไปในฟิลด์ของ request
+    request.fields['quantity'] = quantity;
     request.fields['description'] = description;
-    
+
+    // เพิ่มรูปภาพ
     if (_image != null) {
       request.files.add(await http.MultipartFile.fromPath('image', _image!.path));
     }
@@ -70,7 +63,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
     try {
       var response = await request.send();
 
-      if (response.statusCode == 201) { // Changed to 201 for successful creation
+      if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Reward added successfully!'),
           backgroundColor: Colors.green,
@@ -78,7 +71,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
         // Clear the form
         _rewardNameController.clear();
         _pointsRequiredController.clear();
-        _quantityController.clear();  // เคลียร์ฟิลด์ `quantity`
+        _quantityController.clear();
         _descriptionController.clear();
         setState(() {
           _image = null;
@@ -157,7 +150,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
               ),
               const SizedBox(height: 20),
               TextField(
-                controller: _quantityController,  // ฟิลด์สำหรับจำนวนสินค้า
+                controller: _quantityController,
                 decoration: const InputDecoration(
                   labelText: 'Quantity',
                   border: OutlineInputBorder(),
