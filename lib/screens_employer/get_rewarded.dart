@@ -20,7 +20,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
   final TextEditingController _searchController = TextEditingController();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? controller;
-  bool isScanning = false; // ใช้เพื่อเช็คสถานะการสแกน
+  bool isScanning = false;
 
   @override
   void initState() {
@@ -121,16 +121,16 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // ปิดป็อปอัพ
+                Navigator.of(context).pop();
               },
-              child: const Text('ยกเลิก'),
+              child: const Text('ยกเลิก', style: TextStyle(color: Colors.red)),
             ),
             TextButton(
               onPressed: () {
-                completeRedemption(redemptionId); // เรียกฟังก์ชันยืนยัน
-                Navigator.of(context).pop(); // ปิดป็อปอัพหลังจากยืนยัน
+                completeRedemption(redemptionId);
+                Navigator.of(context).pop();
               },
-              child: const Text('ยืนยัน'),
+              child: const Text('ยืนยัน', style: TextStyle(color: Colors.green)),
             ),
           ],
         );
@@ -142,8 +142,8 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       setState(() {
-        _searchController.text = scanData.code!; // อัปเดตค่าตัวค้นหา
-        _filterRedemptions(); // เรียกฟังก์ชันกรอง
+        _searchController.text = scanData.code!;
+        _filterRedemptions();
       });
     });
   }
@@ -186,6 +186,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('รายการแลกสินค้า'),
+        backgroundColor: Colors.teal,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -194,14 +195,15 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
           children: [
             Text(
               'พนักงาน ID: ${widget.staff_id}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'กรอกรหัสของรางวัลเพื่อค้นหา',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search, color: Colors.teal),
               ),
               onChanged: (value) {
                 if (value.isNotEmpty) {
@@ -211,14 +213,14 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                     setState(() {
                       isScanning = false;
                     });
-                    Navigator.of(context).pop(); // ปิดป็อปอัพเมื่อป้อนข้อมูลแล้ว
+                    Navigator.of(context).pop();
                   }
                 } else {
                   setState(() {
                     filteredRedemptions = [];
                   });
                 }
-              }
+              },
             ),
             const SizedBox(height: 20),
             Expanded(
@@ -233,6 +235,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                             return Card(
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               elevation: 4,
+                              color: Colors.lightGreen[50], // เปลี่ยนสีพื้นหลังของ Card
                               child: Padding(
                                 padding: const EdgeInsets.all(12.0),
                                 child: Column(
@@ -243,6 +246,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
+                                        color: Colors.teal,
                                       ),
                                     ),
                                     const SizedBox(height: 5),
@@ -250,7 +254,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                                     Text('รหัสของรางวัล: ${redemption['reward_id']}'),
                                     Text('วันที่แลก: ${formatThaiDate(redemption['redemption_date'])}'),
                                     Text('แต้มที่ใช้: ${redemption['points_used']}'),
-                                    Text('จำนวนของ: ${redemption['quantity']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('จำนวนของ: ${redemption['quantity']}'),
                                     const SizedBox(height: 10),
                                     Divider(color: Colors.grey[400]),
                                     Align(
@@ -259,6 +263,9 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                                         onPressed: () {
                                           _showConfirmationDialog(redemption['redemption_id']);
                                         },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.teal, // เปลี่ยนสีของปุ่ม
+                                        ),
                                         child: const Text('ยืนยันรับสินค้า'),
                                       ),
                                     ),
@@ -270,9 +277,13 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
                         ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: _showQRCodeScanner,
-              child: const Text('แสกน QR Code'),
+              icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+              label: const Text('แสกน QR Code', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal, // เปลี่ยนสีของปุ่ม
+              ),
             ),
           ],
         ),

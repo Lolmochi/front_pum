@@ -103,10 +103,7 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
         result = scanData;
         controller.pauseCamera();
         if (result != null) {
-          // ตรวจสอบและแยกข้อมูลจาก QR Code
           String scannedPhoneNumber = result!.code ?? '';
-          
-          // เติมข้อมูลเบอร์โทรที่สแกนได้ลงในช่องเบอร์โทร
           phoneController.text = scannedPhoneNumber;
         }
         Navigator.pop(context); // ปิดหน้าสแกน QR
@@ -212,105 +209,156 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
     );
   }
 
+  Widget _buildFuelButton(String fuelType, IconData icon) {
+    return Card(
+      elevation: 4,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            selectedFuelType = fuelType;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: selectedFuelType == fuelType ? const Color.fromARGB(255, 243, 33, 33) : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selectedFuelType == fuelType ? const Color.fromARGB(255, 243, 33, 33) : Colors.grey,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 35, color: selectedFuelType == fuelType ? Colors.white : Colors.blue),
+              const SizedBox(height: 20),
+              Text(
+                fuelType,
+                style: TextStyle(
+                  color: selectedFuelType == fuelType ? Colors.white : Colors.blue,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('บันทึกการขายน้ำมัน'),
+        backgroundColor: Colors.deepOrange,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: phoneController,
-                      decoration: const InputDecoration(labelText: 'เบอร์โทร'),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      value: selectedFuelType,
-                      decoration: const InputDecoration(labelText: 'ประเภทน้ำมัน'),
-                      onChanged: (value) {
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: phoneController,
+                decoration: InputDecoration(
+                  labelText: 'เบอร์โทร',
+                  prefixIcon: const Icon(Icons.phone),
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 8),
+              const Text('ประเภทน้ำมัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1,
+                mainAxisSpacing: 2,
+                crossAxisSpacing: 2,
+                children: [
+                  _buildFuelButton('ดีเซล B7', Icons.local_gas_station),
+                  _buildFuelButton('ดีเซล B10', Icons.local_gas_station),
+                  _buildFuelButton('แก๊สโซฮอล์ E20', Icons.local_gas_station),
+                  _buildFuelButton('แก๊สโซฮอล์ 91', Icons.local_gas_station),
+                  _buildFuelButton('แก๊สโซฮอล์ 95', Icons.local_gas_station),
+                  _buildFuelButton('ซูเปอร์พาวเวอร์ดีเซล B7', Icons.local_gas_station),
+                  _buildFuelButton('ซูเปอร์พาวเวอร์แก๊สโซฮอล์ 95', Icons.local_gas_station),
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(
+                  labelText: 'จำนวนเงิน',
+                  prefixIcon: const Icon(Icons.attach_money),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+              const SizedBox(height: 10),
+              _devices.isNotEmpty
+                  ? DropdownButton<BluetoothDevice>(
+                      value: _selectedDevice,
+                      hint: const Text('เลือกอุปกรณ์ Bluetooth'),
+                      onChanged: (BluetoothDevice? device) {
                         setState(() {
-                          selectedFuelType = value!;
+                          _selectedDevice = device;
                         });
                       },
-                      items: ['ดีเซล B7', 'ดีเซล B10', 'แก๊สโซฮอล์ E20', 'แก๊สโซฮอล์ 91', 'แก๊สโซฮอล์ 95', 'ซูเปอร์พาวเวอร์ดีเซล B7', 'ซูเปอร์พาวเวอร์แก๊สโซฮอล์ 95']
-                          .map((fuelType) => DropdownMenuItem(
-                                value: fuelType,
-                                child: Text(fuelType),
+                      items: _devices
+                          .map((device) => DropdownMenuItem(
+                                value: device,
+                                child: Text(device.name ?? ""),
                               ))
                           .toList(),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: priceController,
-                      decoration: const InputDecoration(labelText: 'ราคา'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => scanQRCode(context),
-                            child: const Text('สแกน QR Code'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: submitTransaction,
-                            child: const Text('ยืนยัน'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: connectToBluetooth,
-                      child: const Text('เชื่อมต่อ Bluetooth'),
-                    ),
-                    const SizedBox(height: 10),
-                    _devices.isNotEmpty
-                        ? DropdownButton<BluetoothDevice>(
-                            value: _selectedDevice,
-                            hint: const Text('เลือกอุปกรณ์ Bluetooth'),
-                            onChanged: (BluetoothDevice? device) {
-                              setState(() {
-                                _selectedDevice = device;
-                              });
-                            },
-                            items: _devices
-                                .map((device) => DropdownMenuItem(
-                                      value: device,
-                                      child: Text(device.name ?? ""),
-                                    ))
-                                .toList(),
-                          )
-                        : const Text('ไม่พบอุปกรณ์ Bluetooth'),
+                    )
+                  : const Text('ไม่มีอุปกรณ์ Bluetooth'),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: connectToBluetooth,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.bluetooth_connected),
+                    SizedBox(width: 8),
+                    Text('เชื่อมต่อ Bluetooth'),
                   ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () => scanQRCode(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.qr_code_scanner),
+                    SizedBox(width: 8),
+                    Text('สแกน QR Code'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: submitTransaction,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.save),
+                    SizedBox(width: 8),
+                    Text('บันทึกการขาย'),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-
 
 
 class ReceiptScreen extends StatelessWidget {
