@@ -33,7 +33,7 @@ class _LoginScreen extends State<Login> {
       if (response.statusCode == 200) {
         Navigator.pushNamed(
           context, 
-          '/home_staff',
+          '/sales',
           arguments: {'staff_id': _idController.text},
         );
       } else if (response.statusCode == 404) {

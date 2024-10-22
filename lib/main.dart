@@ -7,7 +7,6 @@ import 'screens_officer/Home_officer.dart'; // Officer home screen
 import 'screens_officer/search_transaction.dart'; // Search transactions
 import 'screens_officer/redeem_items.dart'; // Redeem items
 import 'screens_officer/search_edit_reward.dart'; // Search reward
-import 'screens_employer/home_staff.dart';
 import 'screens_employer/get_rewarded.dart';
 import 'screens_officer/history_of_year.dart';
 import 'screens_officer/FuelTypeStats.dart';
@@ -30,12 +29,6 @@ class MyApp extends StatelessWidget {
       initialRoute: '/login', // Initial route can be set as needed
       routes: {
         '/login': (context) => const Login(), // Staff login page
-        '/home_staff': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map?;
-          final staffId = args?['staff_id'] ?? ''; // Receive staffId
-          return HomeStaffScreen(staff_id: staffId);
-        },
-
         '/sales': (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map?;
           final staffId = args?['staff_id'] ?? ''; // Receive staffId

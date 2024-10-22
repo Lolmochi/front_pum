@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_application_12/screens_employer/ReceiptScreen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:intl/intl.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -248,217 +248,122 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('บันทึกการขายน้ำมัน'),
-        backgroundColor: Colors.deepOrange,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: phoneController,
-                decoration: InputDecoration(
-                  labelText: 'เบอร์โทร',
-                  prefixIcon: const Icon(Icons.phone),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 8),
-              const Text('ประเภทน้ำมัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1,
-                mainAxisSpacing: 2,
-                crossAxisSpacing: 2,
-                children: [
-                  _buildFuelButton('ดีเซล B7', Icons.local_gas_station),
-                  _buildFuelButton('ดีเซล B10', Icons.local_gas_station),
-                  _buildFuelButton('แก๊สโซฮอล์ E20', Icons.local_gas_station),
-                  _buildFuelButton('แก๊สโซฮอล์ 91', Icons.local_gas_station),
-                  _buildFuelButton('แก๊สโซฮอล์ 95', Icons.local_gas_station),
-                  _buildFuelButton('ซูเปอร์พาวเวอร์ดีเซล B7', Icons.local_gas_station),
-                  _buildFuelButton('ซูเปอร์พาวเวอร์แก๊สโซฮอล์ 95', Icons.local_gas_station),
-                ],
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: priceController,
-                decoration: InputDecoration(
-                  labelText: 'จำนวนเงิน',
-                  prefixIcon: const Icon(Icons.attach_money),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              ),
-              const SizedBox(height: 10),
-              _devices.isNotEmpty
-                  ? DropdownButton<BluetoothDevice>(
-                      value: _selectedDevice,
-                      hint: const Text('เลือกอุปกรณ์ Bluetooth'),
-                      onChanged: (BluetoothDevice? device) {
-                        setState(() {
-                          _selectedDevice = device;
-                        });
-                      },
-                      items: _devices
-                          .map((device) => DropdownMenuItem(
-                                value: device,
-                                child: Text(device.name ?? ""),
-                              ))
-                          .toList(),
-                    )
-                  : const Text('ไม่มีอุปกรณ์ Bluetooth'),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: connectToBluetooth,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.bluetooth_connected),
-                    SizedBox(width: 8),
-                    Text('เชื่อมต่อ Bluetooth'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () => scanQRCode(context),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.qr_code_scanner),
-                    SizedBox(width: 8),
-                    Text('สแกน QR Code'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: submitTransaction,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.save),
-                    SizedBox(width: 8),
-                    Text('บันทึกการขาย'),
-                  ],
-                ),
-              ),
-            ],
-          ),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('บันทึกการขายน้ำมัน'),
+      backgroundColor: Colors.deepOrange,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.card_giftcard),
+          onPressed: () {
+            Navigator.pushNamed(context, '/get_rewarded');
+          },
         ),
-      ),
-    );
-  }
-}
-
-
-class ReceiptScreen extends StatelessWidget {
-  final String transactionId;
-  final String phoneNumber;
-  final String fuelType;
-  final double price;
-  final int pointsEarned;
-  final double dividend;
-  final String staffFirstName;
-  final String staffLastName;
-  final String memberId;
-  final String memberFirstName;
-  final String memberLastName;
-  final String staffId;
-  final BluetoothDevice? selectedDevice;
-
-  const ReceiptScreen({super.key, 
-    required this.transactionId,
-    required this.phoneNumber,
-    required this.fuelType,
-    required this.price,
-    required this.pointsEarned,
-    required this.dividend,
-    required this.staffFirstName,
-    required this.staffLastName,
-    required this.memberId,
-    required this.memberFirstName,
-    required this.memberLastName,
-    required this.staffId,
-    this.selectedDevice,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ใบเสร็จ'),
-      ),
-      body: Padding(
+      ],
+    ),
+    body: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('หมายเลขรายการ: $transactionId'),
-            Text('เบอร์โทร: $phoneNumber'),
-            Text('ประเภทน้ำมัน: $fuelType'),
-            Text('ราคา: ฿${price.toStringAsFixed(2)}'),
-            Text('แต้มสะสม: $pointsEarned'),
-            Text('ปันผลประจำปี: ฿${dividend.toStringAsFixed(2)}'),
-            Text('ผู้บันทึก: $staffFirstName $staffLastName (ID: $staffId)'),
-            Text('สมาชิก: $memberFirstName $memberLastName (ID: $memberId)'),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () => printReceipt(),
-                child: const Text('พิมพ์ใบเสร็จ'),
+            TextField(
+              controller: phoneController,
+              decoration: InputDecoration(
+                labelText: 'เบอร์โทร',
+                prefixIcon: const Icon(Icons.phone),
+              ),
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 8),
+            const Text('ประเภทน้ำมัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 1,
+              mainAxisSpacing: 2,
+              crossAxisSpacing: 2,
+              children: [
+                _buildFuelButton('ดีเซล B7', Icons.local_gas_station),
+                _buildFuelButton('ดีเซล B10', Icons.local_gas_station),
+                _buildFuelButton('แก๊สโซฮอล์ E20', Icons.local_gas_station),
+                _buildFuelButton('แก๊สโซฮอล์ 91', Icons.local_gas_station),
+                _buildFuelButton('แก๊สโซฮอล์ 95', Icons.local_gas_station),
+                _buildFuelButton('ซูเปอร์พาวเวอร์ดีเซล B7', Icons.local_gas_station),
+                _buildFuelButton('ซูเปอร์พาวเวอร์แก๊สโซฮอล์ 95', Icons.local_gas_station),
+              ],
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: priceController,
+              decoration: InputDecoration(
+                labelText: 'จำนวนเงิน',
+                prefixIcon: const Icon(Icons.attach_money),
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            ),
+            const SizedBox(height: 10),
+            _devices.isNotEmpty
+                ? DropdownButton<BluetoothDevice>(
+                    value: _selectedDevice,
+                    hint: const Text('เลือกอุปกรณ์ Bluetooth'),
+                    onChanged: (BluetoothDevice? device) {
+                      setState(() {
+                        _selectedDevice = device;
+                      });
+                    },
+                    items: _devices
+                        .map((device) => DropdownMenuItem(
+                              value: device,
+                              child: Text(device.name ?? ""),
+                            ))
+                        .toList(),
+                  )
+                : const Text('ไม่มีอุปกรณ์ Bluetooth'),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: connectToBluetooth,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.bluetooth_connected),
+                  SizedBox(width: 8),
+                  Text('เชื่อมต่อ Bluetooth'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () => scanQRCode(context),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.qr_code_scanner),
+                  SizedBox(width: 8),
+                  Text('สแกน QR Code'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: submitTransaction,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.save),
+                  SizedBox(width: 8),
+                  Text('บันทึกการขาย'),
+                ],
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Future<void> printReceipt() async {
-    final bluetooth = BlueThermalPrinter.instance;
-
-    if (selectedDevice == null) {
-      print("ยังไม่ได้เลือกอุปกรณ์ Bluetooth.");
-      return;
-    }
-
-    try {
-      bool? isConnected = await bluetooth.isConnected;
-      if (!isConnected!) {
-        await bluetooth.connect(selectedDevice!);
-      }
-
-      // พิมพ์ข้อความภาษาไทย
-      bluetooth.printCustom('ใบเสร็จรับเงิน', 3, 1);
-      bluetooth.printNewLine();
-      bluetooth.printCustom('หมายเลขรายการ: $transactionId', 1, 0);
-      bluetooth.printCustom('เบอร์โทร: $phoneNumber', 1, 0);
-      bluetooth.printCustom('ID member: $memberId', 1, 0);
-      bluetooth.printCustom('ชื่อนามสกุล: $memberFirstName $memberLastName', 1, 0);
-      bluetooth.printCustom('ประเภทน้ำมัน: $fuelType', 1, 0);
-      bluetooth.printCustom('ราคา: ฿${price.toStringAsFixed(2)}', 1, 0);
-      bluetooth.printCustom('แต้มสะสม: $pointsEarned', 1, 0);
-      bluetooth.printCustom('ปันผลประจำปี: ฿${dividend.toStringAsFixed(2)}', 1, 0);
-      bluetooth.printCustom('วันที่ทำรายการ: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}', 1, 0);
-      bluetooth.printCustom('ID ผู้บันทึก: $staffId', 1, 0);
-      bluetooth.printNewLine();
-      bluetooth.printCustom('ขอบคุณที่ใช้บริการ!', 2, 1);
-      bluetooth.printNewLine();
-      bluetooth.paperCut();
-
-      print("พิมพ์ใบเสร็จสำเร็จ.");
-    } catch (e) {
-      print("ข้อผิดพลาดในการพิมพ์ใบเสร็จ: $e");
-    }
-  }
+    ),
+  );
+}
 }
