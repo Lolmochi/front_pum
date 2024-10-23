@@ -33,7 +33,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
 
   Future<List<dynamic>> _fetchTransactions([String query = '']) async {
     final response = await http.get(Uri.parse(
-        'http://192.168.1.20:3000/search_transactions?search_type=$selectedSearchType&query=$query'));
+        'http://192.168.1.34:3000/search_transactions?search_type=$selectedSearchType&query=$query'));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -43,7 +43,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
   }
 
   Future<List<Map<String, dynamic>>> _fetchFuelTypes() async { 
-    final response = await http.get(Uri.parse('http://192.168.1.20:3000/fuel_types'));
+    final response = await http.get(Uri.parse('http://192.168.1.34:3000/fuel_types'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
@@ -59,13 +59,13 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
     }
   }
 
-  Future<void> _updateTransaction(String transactionId, String fuelTypeId, String points_earned) async {
+  Future<void> _updateTransaction(String transactionId, String fuelTypeId, String pointsEarned) async {
     final response = await http.put(
-      Uri.parse('http://192.168.1.20:3000/transactions/$transactionId'),
+      Uri.parse('http://192.168.1.34:3000/transactions/$transactionId'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         'fuel_type_id': fuelTypeId,
-        'points_earned': points_earned,
+        'points_earned': pointsEarned,
         'officer_id': widget.officer_id, // ส่ง officer_id ไปด้วย
       }),
     );
@@ -81,7 +81,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
   }
 
   void _showEditDialog(Map<String, dynamic> transaction) async {
-    final TextEditingController points_earnedController = TextEditingController(text: transaction['points_earned'].toString());
+    final TextEditingController pointsEarnedcontroller = TextEditingController(text: transaction['points_earned'].toString());
 
     List<Map<String, dynamic>> fuelTypes = await _fetchFuelTypes(); // เรียกฟังก์ชันที่อัปเดตแล้ว
     String selectedFuelTypeId = transaction['fuel_type_id'].toString();
@@ -112,7 +112,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                       },
                     ),
                     TextField(
-                      controller: points_earnedController,
+                      controller: pointsEarnedcontroller,
                       decoration: const InputDecoration(labelText: 'จำนวนคะแนน'),
                       keyboardType: TextInputType.number,
                     ),
@@ -131,7 +131,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                     _updateTransaction(
                       transaction['transaction_id'],
                       selectedFuelTypeId,
-                      points_earnedController.text,
+                      pointsEarnedcontroller.text,
                     );
                     Navigator.of(context).pop();
                   },
@@ -225,8 +225,7 @@ class _SearchTransactionScreenState extends State<SearchTransactionScreen> {
                             leading: const Icon(Icons.payment, color: Colors.green),
                             title: Text('รหัสธุรกรรม: ${transaction['transaction_id']}'),
                             subtitle: Text(
-                              'จำนวนคะแนน: ${transaction['points_earned']} | ประเภทน้ำมัน: ${fuelTypesMap[transaction['fuel_type_id'].toString()] ?? 'Unknown'}' +
-                              (transaction['officer_id'] != null ? ' | แก้ไขโดย ID: ${transaction['officer_id']}' : ''),
+                              'จำนวนคะแนน: ${transaction['points_earned']} | ประเภทน้ำมัน: ${fuelTypesMap[transaction['fuel_type_id'].toString()] ?? 'Unknown'}${transaction['officer_id'] != null ? ' | แก้ไขโดย ID: ${transaction['officer_id']}' : ''}',
                             ),
                             trailing: IconButton(
                               icon: const Icon(Icons.edit, color: Colors.blue),

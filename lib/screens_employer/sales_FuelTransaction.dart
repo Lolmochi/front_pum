@@ -20,7 +20,7 @@ class _FuelTransactionScreenState extends State<FuelTransactionScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController priceController = TextEditingController();
   String selectedFuelType = 'ดีเซล B7';
-  String baseUrl = 'http://192.168.1.20:3000';
+  String baseUrl = 'http://192.168.1.34:3000';
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   List<BluetoothDevice> _devices = [];
   BluetoothDevice? _selectedDevice;
@@ -270,9 +270,9 @@ Widget build(BuildContext context) {
           children: [
             TextField(
               controller: phoneController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'เบอร์โทร',
-                prefixIcon: const Icon(Icons.phone),
+                prefixIcon: Icon(Icons.phone),
               ),
               keyboardType: TextInputType.phone,
             ),
@@ -299,9 +299,9 @@ Widget build(BuildContext context) {
             const SizedBox(height: 10),
             TextField(
               controller: priceController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'จำนวนเงิน',
-                prefixIcon: const Icon(Icons.attach_money),
+                prefixIcon: Icon(Icons.attach_money),
               ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -327,9 +327,9 @@ Widget build(BuildContext context) {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: connectToBluetooth,
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(Icons.bluetooth_connected),
                   SizedBox(width: 8),
                   Text('เชื่อมต่อ Bluetooth'),
@@ -339,9 +339,9 @@ Widget build(BuildContext context) {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () => scanQRCode(context),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(Icons.qr_code_scanner),
                   SizedBox(width: 8),
                   Text('สแกน QR Code'),
@@ -351,9 +351,9 @@ Widget build(BuildContext context) {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: submitTransaction,
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(Icons.save),
                   SizedBox(width: 8),
                   Text('บันทึกการขาย'),

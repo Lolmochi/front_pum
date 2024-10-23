@@ -28,7 +28,7 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
   Future<void> fetchRedemptions() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.20:3000/redemptions/search_redemptions'),
+        Uri.parse('http://192.168.1.34:3000/redemptions/search_redemptions'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'status': selectedStatus != 'all' ? selectedStatus : null,
@@ -75,10 +75,10 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'ค้นหาด้วยชื่อรางวัล',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.search), // เพิ่มไอคอนค้นหา
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search), // เพิ่มไอคอนค้นหา
               ),
               onChanged: (value) {
                 searchQuery = value; // อัปเดตค่าการค้นหา
@@ -197,7 +197,7 @@ class _SearchRedemptionsScreenState extends State<Search_deleteRedemptionsScreen
   Future<void> deleteRedemption(String redemptionId) async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.20:3000/redemptions/delete_redemption'),
+        Uri.parse('http://192.168.1.34:3000/redemptions/delete_redemption'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'redemption_id': redemptionId}),
       );

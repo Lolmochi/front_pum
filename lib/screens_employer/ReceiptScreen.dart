@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
-import 'package:intl/intl.dart';
+import 'package:charset_converter/charset_converter.dart';
 
 class ReceiptScreen extends StatelessWidget {
   final String transactionId;
@@ -17,7 +17,8 @@ class ReceiptScreen extends StatelessWidget {
   final String staffId;
   final BluetoothDevice? selectedDevice;
 
-  const ReceiptScreen({super.key, 
+  const ReceiptScreen({
+    super.key,
     required this.transactionId,
     required this.phoneNumber,
     required this.fuelType,
@@ -79,27 +80,19 @@ class ReceiptScreen extends StatelessWidget {
         await bluetooth.connect(selectedDevice!);
       }
 
-      // พิมพ์ข้อความภาษาไทย
-      bluetooth.printCustom('ใบเสร็จรับเงิน', 3, 1);
-      bluetooth.printNewLine();
-      bluetooth.printCustom('หมายเลขรายการ: $transactionId', 1, 0);
-      bluetooth.printCustom('เบอร์โทร: $phoneNumber', 1, 0);
-      bluetooth.printCustom('ID member: $memberId', 1, 0);
-      bluetooth.printCustom('ชื่อนามสกุล: $memberFirstName $memberLastName', 1, 0);
-      bluetooth.printCustom('ประเภทน้ำมัน: $fuelType', 1, 0);
-      bluetooth.printCustom('ราคา: ฿${price.toStringAsFixed(2)}', 1, 0);
-      bluetooth.printCustom('แต้มสะสม: $pointsEarned', 1, 0);
-      bluetooth.printCustom('ปันผลประจำปี: ฿${dividend.toStringAsFixed(2)}', 1, 0);
-      bluetooth.printCustom('วันที่ทำรายการ: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}', 1, 0);
-      bluetooth.printCustom('ID ผู้บันทึก: $staffId', 1, 0);
-      bluetooth.printNewLine();
-      bluetooth.printCustom('ขอบคุณที่ใช้บริการ!', 2, 1);
+      String thaiText = "ใบเสร็จรับเงิน";
+
+      // พิมพ์ข้อความทีละตัว
+      for (int i = 0; i < thaiText.length; i++) {
+        bluetooth.printCustom(thaiText[i], 1, 0);
+      }
+
       bluetooth.printNewLine();
       bluetooth.paperCut();
 
-      print("พิมพ์ใบเสร็จสำเร็จ.");
+      print("พิมพ์ข้อความภาษาไทยสำเร็จ.");
     } catch (e) {
-      print("ข้อผิดพลาดในการพิมพ์ใบเสร็จ: $e");
+      print("ข้อผิดพลาดในการพิมพ์ภาษาไทย: $e");
     }
   }
 }

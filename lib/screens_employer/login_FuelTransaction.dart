@@ -17,7 +17,7 @@ class _LoginScreen extends State<Login> {
   Future<void> _login() async {
     try {
       var response = await http.post(
-        Uri.parse('http://192.168.1.20:3000/staff/login'),
+        Uri.parse('http://192.168.1.34:3000/staff/login'),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
@@ -69,11 +69,11 @@ class _LoginScreen extends State<Login> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.login),
-            const SizedBox(width: 10),
-            const Text('เข้าสู่ระบบ'),
+            SizedBox(width: 10),
+            Text('เข้าสู่ระบบ'),
           ],
         ),
         backgroundColor: Colors.green[800],

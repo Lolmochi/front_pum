@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class RewardManagementPage extends StatefulWidget {
   const RewardManagementPage({super.key});
@@ -46,7 +45,7 @@ class _RewardManagementPageState extends State<RewardManagementPage> {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse('http://192.168.1.20:3000/rewards'),
+      Uri.parse('http://192.168.1.34:3000/rewards'),
     );
 
     // เพิ่มข้อมูล reward

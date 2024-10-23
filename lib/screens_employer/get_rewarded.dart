@@ -37,7 +37,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
   Future<void> fetchPendingRedemptions() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.20:3000/redemptions/get_redemptions'),
+        Uri.parse('http://192.168.1.34:3000/redemptions/get_redemptions'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'staff_id': widget.staff_id}),
       );
@@ -73,7 +73,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
   String formatThaiDate(String dateStr) {
     try {
       DateTime parsedDate = DateTime.parse(dateStr).toUtc();
-      DateTime thaiDate = parsedDate.add(Duration(hours: 7));
+      DateTime thaiDate = parsedDate.add(const Duration(hours: 7));
       return DateFormat('dd/MM/yyyy HH:mm').format(thaiDate);
     } catch (e) {
       print('Error parsing date: $e');
@@ -84,7 +84,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
   Future<void> completeRedemption(String redemptionId) async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.20:3000/redemptions/update_redemption_status'),
+        Uri.parse('http://192.168.1.34:3000/redemptions/update_redemption_status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'redemption_id': redemptionId,
@@ -200,10 +200,10 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
             const SizedBox(height: 20),
             TextField(
               controller: _searchController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'กรอกรหัสของรางวัลเพื่อค้นหา',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search, color: Colors.teal),
               ),
               onChanged: (value) {
                 if (value.isNotEmpty) {
