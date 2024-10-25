@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_12/screens_officer/image_for_new.dart';
 import 'screens_officer/redemtion_deleted.dart';
 import 'screens_employer/login_FuelTransaction.dart'; // Staff login screen
 import 'screens_employer/sales_FuelTransaction.dart'; // Sales screen for staff
@@ -10,8 +11,6 @@ import 'screens_officer/search_edit_reward.dart'; // Search reward
 import 'screens_employer/get_rewarded.dart';
 import 'screens_officer/history_of_year.dart';
 import 'screens_officer/FuelTypeStats.dart';
-
-
 
 void main() => runApp(const MyApp());
 
@@ -52,6 +51,10 @@ class MyApp extends StatelessWidget {
           '/search_edit_reward': (context) {
           final String officerId = ModalRoute.of(context)!.settings.arguments as String;
           return SearchAndEditRewardPage(officer_id: officerId);
+        },
+          '/image_for_new': (context) {
+          final String officerId = ModalRoute.of(context)!.settings.arguments as String;
+          return ImageDragDropPage(officer_id: officerId);
         },
         '/redeem_items': (context) => const RewardManagementPage(), 
         '/redemption_deleted': (context) => const Search_deleteRedemptionsScreen(), 

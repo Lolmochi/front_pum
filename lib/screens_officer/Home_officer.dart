@@ -84,6 +84,13 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.redeem, color: Colors.teal),
+              title: const Text('New'),
+              onTap: () {
+                Navigator.pushNamed(context, '/image_for_new', arguments: widget.officer_id);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.edit, color: Colors.teal),
               title: const Text('Edit Reward'),
               onTap: () {

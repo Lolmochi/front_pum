@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
-import 'package:charset_converter/charset_converter.dart';
 
 class ReceiptScreen extends StatelessWidget {
   final String transactionId;
