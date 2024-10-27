@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_12/screens_officer/image_for_new.dart';
+import 'package:flutter_application_12/screens_officer/manage_images.dart';
 import 'screens_officer/redemtion_deleted.dart';
 import 'screens_employer/login_FuelTransaction.dart'; // Staff login screen
 import 'screens_employer/sales_FuelTransaction.dart'; // Sales screen for staff
@@ -54,7 +55,11 @@ class MyApp extends StatelessWidget {
         },
           '/image_for_new': (context) {
           final String officerId = ModalRoute.of(context)!.settings.arguments as String;
-          return ImageDragDropPage(officer_id: officerId);
+          return ImageUploadPage(officer_id: officerId);
+        },
+          '/manage_images': (context) {
+          final String officerId = ModalRoute.of(context)!.settings.arguments as String;
+          return ImageManagementPage(officer_id: officerId);
         },
         '/redeem_items': (context) => const RewardManagementPage(), 
         '/redemption_deleted': (context) => const Search_deleteRedemptionsScreen(), 

@@ -25,7 +25,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
   }
 
   Future<List<dynamic>> _fetchRewards([String query = '']) async {
-    final response = await http.get(Uri.parse('http://192.168.1.34:3000/rewards?query=$query'));
+    final response = await http.get(Uri.parse('http://192.168.1.109:3000/rewards?query=$query'));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -46,7 +46,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
   }
 
   Future<void> _updateReward(String rewardId, String rewardName, int pointsRequired, String description, int quantity, File? imageFile) async {
-    var uri = Uri.parse('http://192.168.1.34:3000/rewards/$rewardId');
+    var uri = Uri.parse('http://192.168.1.109:3000/rewards/$rewardId');
     var request = http.MultipartRequest('PUT', uri);
 
     request.fields['reward_name'] = rewardName;
@@ -119,7 +119,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                           child: ListTile(
                             leading: ClipOval(
                               child: Image.network(
-                                'http://192.168.1.34:3000/uploads/${reward['image']}',
+                                'http://192.168.1.109:3000/uploads/${reward['image']}',
                                 width: 50,
                                 height: 50,
                                 fit: BoxFit.cover,
@@ -186,7 +186,7 @@ class _SearchAndEditRewardPageState extends State<SearchAndEditRewardPage> {
                 _selectedImage != null
                     ? Image.file(_selectedImage!, height: 100)
                     : Image.network(
-                        'http://192.168.1.34:3000/uploads/${reward['image']}',
+                        'http://192.168.1.109:3000/uploads/${reward['image']}',
                         height: 100,
                       ),
                 ElevatedButton(

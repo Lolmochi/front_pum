@@ -37,7 +37,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
   Future<void> fetchPendingRedemptions() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.34:3000/redemptions/get_redemptions'),
+        Uri.parse('http://192.168.1.109:3000/redemptions/get_redemptions'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'staff_id': widget.staff_id}),
       );
@@ -84,7 +84,7 @@ class _GetRewardedScreenState extends State<GetRewardedScreen> {
   Future<void> completeRedemption(String redemptionId) async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.34:3000/redemptions/update_redemption_status'),
+        Uri.parse('http://192.168.1.109:3000/redemptions/update_redemption_status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'redemption_id': redemptionId,

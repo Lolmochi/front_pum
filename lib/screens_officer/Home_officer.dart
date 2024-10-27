@@ -28,7 +28,7 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
   }
 
   Future<List<dynamic>> _fetchTransactions() async {
-    final response = await http.get(Uri.parse('http://192.168.1.34:3000/transactions'));
+    final response = await http.get(Uri.parse('http://192.168.1.109:3000/transactions'));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -88,6 +88,13 @@ class _OfficerHomeScreenState extends State<OfficerHomeScreen> {
               title: const Text('New'),
               onTap: () {
                 Navigator.pushNamed(context, '/image_for_new', arguments: widget.officer_id);
+              },
+            ),
+                        ListTile(
+              leading: const Icon(Icons.redeem, color: Colors.teal),
+              title: const Text('manage images'),
+              onTap: () {
+                Navigator.pushNamed(context, '/manage_images', arguments: widget.officer_id);
               },
             ),
             ListTile(

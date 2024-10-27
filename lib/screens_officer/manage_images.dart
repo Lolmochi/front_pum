@@ -1,73 +1,205 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ImageManagementScreen extends StatefulWidget {
+class ImageManagementPage extends StatefulWidget {
   final String officer_id;
 
-  const ImageManagementScreen({super.key, required this.officer_id});
+  const ImageManagementPage({super.key, required this.officer_id});
 
   @override
-  _ImageManagementScreenState createState() => _ImageManagementScreenState();
+  _ImageManagementPageState createState() => _ImageManagementPageState();
 }
 
-class _ImageManagementScreenState extends State<ImageManagementScreen> {
-  late Future<List<dynamic>> _images;
+class _ImageManagementPageState extends State<ImageManagementPage> {
+  List<Map<String, dynamic>> _activeImages = [];
+  List<Map<String, dynamic>> _allImages = [];
+  bool _isLoading = false;
+  late String officerId;
 
   @override
   void initState() {
     super.initState();
-    _images = _fetchImages(); // ดึงข้อมูลรูปภาพจาก API เมื่อหน้าโหลด
+    officerId = widget.officer_id;
+    _fetchImages();
   }
 
-  Future<List<dynamic>> _fetchImages() async {
-    final response = await http.get(Uri.parse('http://192.168.1.34:3000/images'));
+  Future<void> _fetchImages() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    var response = await http.get(Uri.parse('http://192.168.1.109:3000/get_images'));
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      var images = (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+      setState(() {
+        _activeImages = images
+            .where((img) => img['status'] == 'true')
+            .map((img) => {
+                  ...img,
+                  'image_url': 'http://192.168.1.109:3000/uploadnews/${img['image_url']}',
+                })
+            .toList();
+        _allImages = images
+            .where((img) => img['status'] == 'false')
+            .map((img) => {
+                  ...img,
+                  'image_url': 'http://192.168.1.109:3000/uploadnews/${img['image_url']}',
+                })
+            .toList();
+
+        if (_activeImages.length > 6) {
+          _activeImages = _activeImages.take(6).toList();
+        }
+      });
     } else {
-      throw Exception('Failed to load images');
+      _showErrorDialog('Failed to fetch images');
     }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
-  Future<void> _updateImageStatus(int imageId, bool status) async {
-    final response = await http.patch(
-      Uri.parse('http://192.168.1.34:3000/images/$imageId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, dynamic>{
-        'status': status ? 'true' : 'false',
+  Future<void> _updateImageStatus(int imageId, String newStatus) async {
+    var response = await http.post(
+      Uri.parse('http://192.168.1.109:3000/update_image_status'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'image_id': imageId,
+        'officer_id': officerId,
+        'status': newStatus,
       }),
     );
 
+    print('Update response: ${response.statusCode} - ${response.body}');
+
     if (response.statusCode == 200) {
-      setState(() {
-        _images = _fetchImages(); // รีเฟรชข้อมูลรูปภาพหลังจากแก้ไข
-      });
+      await _fetchImages();
     } else {
-      throw Exception('Failed to update image');
+      _showErrorDialog('Failed to update image status');
     }
   }
 
-  Future<void> _updateImageDescription(int imageId, String description) async {
-    final response = await http.patch(
-      Uri.parse('http://192.168.1.34:3000/images/$imageId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
       },
-      body: jsonEncode(<String, dynamic>{
-        'description': description,
-      }),
     );
+  }
 
-    if (response.statusCode == 200) {
-      setState(() {
-        _images = _fetchImages();
-      });
-    } else {
-      throw Exception('Failed to update description');
-    }
+  Widget _buildImageList(List<Map<String, dynamic>> images, bool isActive) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+      ),
+      itemCount: images.length,
+      itemBuilder: (context, index) {
+        return Draggable<Map<String, dynamic>>(
+          data: images[index],
+          child: GestureDetector(
+            onTap: () {
+              _showDescriptionDialog(images[index]['description']);
+            },
+            child: _buildImageContainer(images[index]['image_url']),
+          ),
+          feedback: Material(
+            child: _buildImageContainer(images[index]['image_url'], isFeedback: true),
+          ),
+          childWhenDragging: Container(),
+        );
+      },
+    );
+  }
+
+  Widget _buildImageContainer(String imageUrl, {bool isFeedback = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            } else {
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                      : null,
+                ),
+              );
+            }
+          },
+          errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+            return const Center(child: Text('Failed to load image'));
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showDescriptionDialog(String description) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Description'),
+          content: Text(description),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDropZone() {
+    return DragTarget<Map<String, dynamic>>(
+      onAcceptWithDetails: (details) {
+        // เปลี่ยนสถานะจาก "true" เป็น "false" และจาก "false" เป็น "true"
+        String newStatus = details.data['status'] == 'true' ? 'false' : 'true';
+        _updateImageStatus(details.data['image_id'], newStatus);
+      },
+      builder: (context, candidateData, rejectedData) {
+        return Container(
+          height: 100,
+          color: candidateData.isNotEmpty ? Colors.green : Colors.red,
+          child: const Center(child: Text('Drag Here to Change Status')),
+        );
+      },
+    );
   }
 
   @override
@@ -75,85 +207,31 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Image Management'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.blueAccent,
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _images,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No images found.'));
-          } else {
-            final images = snapshot.data!;
-            return ListView.builder(
-              itemCount: images.length,
-              itemBuilder: (context, index) {
-                final image = images[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  elevation: 4.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ListTile(
-                    leading: Image.network(image['image_url']),
-                    title: Text('Image ID: ${image['image_id']}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Description: ${image['description'] ?? 'No description'}'),
-                        Row(
-                          children: [
-                            const Text('Status: '),
-                            Checkbox(
-                              value: image['status'] == 'true',
-                              onChanged: (bool? newValue) {
-                                if (newValue != null) {
-                                  _updateImageStatus(image['image_id'], newValue);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text('Active Images', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.teal),
-                      onPressed: () {
-                        TextEditingController descriptionController = TextEditingController(text: image['description']);
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Edit Description'),
-                              content: TextField(
-                                controller: descriptionController,
-                                decoration: const InputDecoration(hintText: 'Enter new description'),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    _updateImageDescription(image['image_id'], descriptionController.text);
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('Save'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      },
+                    _buildImageList(_activeImages, true),
+                    _buildDropZone(), // เพิ่ม DragTarget
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text('All Images', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                );
-              },
-            );
-          }
-        },
-      ),
+                    _buildImageList(_allImages, false),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 }
